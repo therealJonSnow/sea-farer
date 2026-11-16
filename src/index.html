@@ -517,9 +517,9 @@ const pdShadow={colorAttachments:[],depthStencilAttachment:{view:shV,depthClearV
   pdScene={colorAttachments:[{view:null,resolveTarget:null,clearValue:[.965,.94,.885,1],loadOp:'clear',storeOp:'discard'},{view:null,resolveTarget:null,clearValue:[0,0,200,0],loadOp:'clear',storeOp:'discard'}],
     depthStencilAttachment:{view:null,depthClearValue:1,depthLoadOp:'clear',depthStoreOp:'discard'},timestampWrites:tw(2)},
   pdPost={colorAttachments:[{view:null,loadOp:'clear',storeOp:'store'}],timestampWrites:tw(4)};
-let RW=0,RH=0,bgP=null,rts=[],offT=null,offV=null;
+const FW=+Q.get('w'),FH=+Q.get('h');let RW=0,RH=0,bgP=null,rts=[],offT=null,offV=null;
 function resize(){
-  const w=max(8,min(4096,+Q.get('w')||round(cv.clientWidth*devicePixelRatio))),h=max(8,min(4096,+Q.get('h')||round(cv.clientHeight*devicePixelRatio)));
+  const w=max(8,min(4096,FW||round(cv.clientWidth*devicePixelRatio))),h=max(8,min(4096,FH||round(cv.clientHeight*devicePixelRatio)));
   if(w==RW&&h==RH)return;RW=cv.width=w;RH=cv.height=h;for(const t of rts)t.destroy();
   const T=(f,s,u)=>{const t=dev.createTexture({size:[w,h],format:f,sampleCount:s,usage:u});rts.push(t);return t.createView()};
   rts=[];const A=pdScene.colorAttachments;
@@ -644,7 +644,7 @@ function update(){
   U[60]=bx;U[61]=bz;U[62]=psi;U[63]=abs(bv);
   const aw=hypot(af,ar)+1e-5;
   U[64]=af/aw;U[65]=ar/aw;U[66]=boom;U[67]=sheet;
-  U[68]=anch;U[69]=RH/(2*hh);U[70]=CAP&&!Q.has('hud')?0:1;U[71]=0;
+  U[68]=anch;U[69]=RH/(2*hh);U[70]=HUD;U[71]=0;
   for(let i=0;i<16;i++)U[72+i]=CRE[i];
   for(let i=0;i<88;i++)U2[i]=U[i];for(let i=0;i<16;i++)U2[i]=U[16+i];
   dev.queue.writeBuffer(ub,0,U);dev.queue.writeBuffer(ub2,0,U2);
@@ -695,7 +695,7 @@ function update(){
 }
 
 // ───────────────────────── frame
-const cmds=[null];
+const cmds=[null],HUD=CAP&&!Q.has('hud')?0:1;
 function drawProps(p){
   p.setVertexBuffer(0,vbuf);p.setVertexBuffer(1,nbuf);p.setIndexBuffer(ibuf,'uint32');
   for(let i=0;i<ND;i++){const o=i*4;p.drawIndexed(draws[o+1],draws[o+3],draws[o],0,draws[o+2])}
@@ -718,44 +718,42 @@ function render(){
   p.setPipeline(pPost);p.setBindGroup(0,bg0);p.setBindGroup(1,bgP);p.draw(3);p.end();
   if(benchOn)benchResolve(en);
   cmds[0]=en.finish();dev.queue.submit(cmds);
-  if(benchOn)benchRead();
 }
 
 // ───────────────────────── benchmark (?bench): 60 s scripted fly-through with GPU timestamps
-let benchOn=0,bN=0,gN=0,bT0=0;const BMAX=24000,fms=new Float32Array(BMAX),gms=new Float32Array(BMAX),pool=[],busy=[];
-function benchResolve(en){if(!TS||!pool.length)return;en.resolveQuerySet(qs,0,6,qbuf,0);const b=pool.pop();en.copyBufferToBuffer(qbuf,0,b,0,48);busy.push(b)}
-function benchRead(){if(!busy.length)return;const b=busy.pop();b.mapAsync(GPUMapMode.READ).then(()=>{const a=new BigInt64Array(b.getMappedRange());
-  const g=Number(a[5]-a[0])/1e6;if(g>0&&gN<BMAX)gms[gN++]=g;b.unmap();pool.push(b)})}
+let benchOn=0,bN=0,gN=0,bT0=0;const BMAX=24000,fms=new Float32Array(BMAX),gms=new Float32Array(BMAX),
+  tsb=TS&&BENCH?dev.createBuffer({size:BMAX*48,usage:B.COPY_DST|B.MAP_READ}):null;
+// timestamps are resolved and appended to one big buffer on the GPU; nothing is mapped (or allocated) until the run ends
+function benchResolve(en){if(tsb&&gN<BMAX){en.resolveQuerySet(qs,0,6,qbuf,0);en.copyBufferToBuffer(qbuf,0,tsb,gN++*48,48)}}
 const stat=(a,n)=>{const s=Array.from(a.subarray(0,n)).sort((x,y)=>x-y);let m=0;for(const v of s)m+=v;return{avg:m/n,p50:s[n>>1],p99:s[min(n-1,floor(n*.99))],max:s[n-1]}};
-function benchDone(){benchOn=0;
+async function benchDone(){benchOn=0;
+  if(tsb){await tsb.mapAsync(GPUMapMode.READ);const a=new BigInt64Array(tsb.getMappedRange());let n=0;
+    for(let i=0;i<gN;i++){const g=Number(a[i*6+5]-a[i*6])/1e6;if(g>0)gms[n++]=g}gN=n}
   const f=stat(fms,bN),g=gN?stat(gms,gN):null,r={adapter:ad.info?(ad.info.vendor+' '+ad.info.architecture+' '+ad.info.description).trim():'',resolution:RW+'x'+RH,seconds:60,frames:bN,
     frame_ms:f,gpu_ms:g,gpu_samples:gN,pass:g?g.avg<=11&&g.max<=16.7:null,frame_log_ms:Array.from(fms.subarray(0,bN),v=>+v.toFixed(2)),gpu_log_ms:Array.from(gms.subarray(0,gN),v=>+v.toFixed(3))};
   window.__bench=r;const F=x=>x.toFixed(2);
   out.textContent=`fly-through 60 s · ${r.resolution} · ${r.adapter}\nframes ${bN}  (${F(bN/60)} fps)\nframe interval ms  avg ${F(f.avg)}  p99 ${F(f.p99)}  max ${F(f.max)}\n`+
     (g?`GPU frame ms       avg ${F(g.avg)}  p99 ${F(g.p99)}  max ${F(g.max)}   (${gN} samples)\ngate (avg ≤ 11, max ≤ 16.7): ${r.pass?'PASS':'FAIL'}`:'timestamp-query unavailable: no GPU timings')+'\nfull log: copy(JSON.stringify(__bench))'}
 
-function pose(n){ // fixed, deterministic camera poses for review renders
-  const P=[[0,0,-PI/2,11,0,8],[0,0,-PI/2,5.6,0,8],[-9.5,2.5,-2.2,8.5,1,7],[14,10,-.9,23,0,8],[24,29,-2.5,11,0,8],[63,-206,.5,13,0,6],[44,23,-2,9,0,8],[8,-12,1.2,7.5,0,8]][n];
-  bx=K*(P[0]-P[1]);bz=-K*(P[0]+P[1]);psi=psiH=P[2];bx-=cos(psi)*3.3*P[5];bz-=sin(psi)*3.3*P[5];zoom=zoomT=P[3];AP=2;bv=3;bl=0;T=20;anch=0;wkt.fill(-99);boom=.5;gullT=n==1?12:0;
+function setPose(x,z,ps,zm,an,wm,gt){ // fixed, deterministic states for review renders: screen-right, screen-depth, heading, zoom, anchored, warm-up s, gull clock
+  bx=K*(x-z)-cos(ps)*3.3*wm;bz=-K*(x+z)-sin(ps)*3.3*wm;psi=psiH=ps;zoom=zoomT=zm;AP=2;bv=3;bl=0;T=20;anch=0;boom=.5;gullT=gt||0;wkt.fill(-99);
   for(let i=0;i<NG;i++){GCX[i]=bx+12*sin(i*2.4);GCZ[i]=bz+12*cos(i*2.4)}
-  seedCreatures();const w=P[5]*60;for(let i=0;i<w;i++){sim(1/60);if(P[4]&&i==w-300)toggleAnchor()}}
-function setPose(x,z,ps,zm,an,wm,gt){pose(0);bx=K*(x-z)-cos(ps)*3.3*wm;bz=-K*(x+z)-sin(ps)*3.3*wm;psi=psiH=ps;zoom=zoomT=zm;gullT=gt||0;T=20;wkt.fill(-99);
-  for(let i=0;i<NG;i++){GCX[i]=bx+12*sin(i*2.4);GCZ[i]=bz+12*cos(i*2.4)}seedCreatures();const w=wm*60;for(let i=0;i<w;i++){sim(1/60);if(an&&i==w-300)toggleAnchor()}}
+  seedCreatures();const w=wm*60;for(let i=0;i<w;i++){sim(1/60);if(an&&i==max(0,w-300))toggleAnchor()}}
 let last=0;
 function frame(now){
   let dt=(now-last)/1e3;last=now;
   if(benchOn){if(bN<BMAX)fms[bN++]=dt*1e3;if(now-bT0>=6e4)benchDone();zoomT=11+4*sin((now-bT0)*.00021)}
   sim(dt>.05?.05:dt<0?0:dt);
-  resize();render();requestAnimationFrame(frame)}
+  render();requestAnimationFrame(frame)}
 if(CAP){
-  window.sf={pose,set:setPose,step:(dt,n)=>{for(let i=0;i<n;i++)sim(dt)},fly:()=>{pose(0);AP=1;wpi=0},zoom:z=>{zoom=zoomT=z},
+  window.sf={set:setPose,step:(dt,n)=>{for(let i=0;i<n;i++)sim(dt)},fly:()=>{setPose(0,0,.9,11,0,8);AP=1;wpi=0},zoom:z=>{zoom=zoomT=z},
     draw:async()=>{resize();render();const bpr=RW*4+255&~255,rb=dev.createBuffer({size:bpr*RH,usage:B.MAP_READ|B.COPY_DST}),en=dev.createCommandEncoder();
       en.copyTextureToBuffer({texture:offT},{buffer:rb,bytesPerRow:bpr},[RW,RH]);dev.queue.submit([en.finish()]);await rb.mapAsync(GPUMapMode.READ);
       const src=new Uint8Array(rb.getMappedRange()),im=new ImageData(RW,RH);for(let y=0;y<RH;y++)im.data.set(src.subarray(y*bpr,y*bpr+RW*4),y*RW*4);
       cv.getContext('2d').putImageData(im,0,0);rb.destroy()},state:()=>({bx,bz,psi,bv,sheet,boom,wpi,T})};
 }else{
   setPose(0,0,.9,11,0,8);AP=0;
-  if(BENCH){AP=1;for(let i=0;i<8;i++)pool.push(dev.createBuffer({size:48,usage:B.MAP_READ|B.COPY_DST}));
+  if(BENCH){AP=1;wpi=0;
     setTimeout(()=>{benchOn=1;bN=gN=0;bT0=performance.now()},1500)}
   setTimeout(()=>hint.style.opacity=0,14000);
   requestAnimationFrame(t=>{last=t;requestAnimationFrame(frame)});
