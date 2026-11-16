@@ -13,7 +13,7 @@ const fs = require('fs'), path = require('path');
   p.on('console', m => console.log('[page]', m.text()));
   p.on('pageerror', e => console.log('[pageerror]', e.message));
   await p.route('https://app.local/**', r => r.fulfill({ contentType: 'text/html', body: fs.readFileSync(html) }));
-  await p.goto('https://app.local/?cap' + (rest.includes('hud') ? '&hud' : ''));
+  await p.goto('https://app.local/?cap' + (rest.includes('hud') ? '&hud' : '') + (process.env.SF_Q || ''));
   await p.waitForFunction('window.sf', null, { timeout: 180000 });
   const snap = async f => { await p.evaluate('sf.draw()'); await p.screenshot({ path: path.join(outDir, f) }); };
   if (mode == 'fly') {

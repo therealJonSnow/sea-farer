@@ -1,27 +1,46 @@
 <!doctype html>
 <html lang=en>
 <meta charset=utf-8>
-<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Sea Farer</title>
 <style>
 html,body{margin:0;height:100%;background:#f6f0e2;overflow:hidden}
-canvas{width:100vw;height:100vh;display:block}
-#h{position:fixed;left:50%;bottom:34px;transform:translateX(-50%);font:15px/1.5 Georgia,serif;color:#3a3550;background:#f6f0e2d9;padding:7px 20px;border-radius:20px;pointer-events:none;transition:opacity 3s;white-space:nowrap}
+canvas{width:100vw;height:100vh;display:block;cursor:grab;touch-action:none}
+canvas.g{cursor:grabbing}
+body.x>div{display:none!important}
+/* hover zone over the chart (drawn in the shader) and the controls card attached to it */
+#mm{position:fixed;left:3.47vh;bottom:3.47vh;width:18.06vh;height:18.06vh;border-radius:50%;cursor:help}
+#h{position:fixed;left:24vh;bottom:4vh;font:14px/1.75 Georgia,serif;color:#3a3550;background:#f6f0e2e6;border:1.5px solid #3a355066;padding:9px 18px;border-radius:14px;pointer-events:none;opacity:0;transition:opacity .5s;white-space:nowrap}
+#h.s,#mm:hover+#h{opacity:1}
+#h b{display:inline-block;min-width:4.2em}
+body.t .k,body:not(.t) .m{display:none}
 #o{position:fixed;left:16px;top:12px;margin:0;font:13px/1.5 ui-monospace,monospace;color:#3a3550;background:#f6f0e2e6;padding:8px 12px;border-radius:8px;white-space:pre}
 #o:empty{display:none}
 #b{position:fixed;right:18px;top:16px;display:flex;gap:6px}
 #b button{font:14px Georgia,serif;color:#3a3550;background:#f6f0e2d9;border:1.5px solid #3a355066;border-radius:16px;padding:5px 12px;cursor:pointer}
+/* touch helm: a tiller pivoting below the screen and a mainsheet to haul on */
+#tl,#ms{position:fixed;display:none;touch-action:none;cursor:grab}
+body.t #tl,body.t #ms{display:block}
+#tl{left:50%;bottom:0;width:64vw;height:36vh;transform:translateX(-50%)}
+#tl i{position:absolute;left:50%;bottom:-22vh;width:3.4vh;height:54vh;margin-left:-1.7vh;border-radius:1.7vh;background:linear-gradient(90deg,#7c4e2e,#cf9459 45%,#7c4e2e);border:.3vh solid #3a2a25;opacity:.5;transform-origin:50% 100%;box-sizing:border-box}
+#tl i:after{content:"";position:absolute;left:50%;top:-1.5vh;width:6vh;height:6vh;margin-left:-3vh;border-radius:50%;background:#cf9459;border:.3vh solid #3a2a25;box-sizing:border-box}
+#ms{right:2vh;top:13vh;bottom:5vh;width:11vh}
+#ms i{position:absolute;left:50%;top:0;bottom:0;width:2.6vh;margin-left:-1.3vh;border-radius:1.3vh;opacity:.5;background:repeating-linear-gradient(-55deg,#efe0b8 0 1.2vh,#b3945c 1.2vh 2.4vh);border:.3vh solid #3a2a25;box-sizing:border-box}
+#ms u{position:absolute;left:50%;width:5vh;height:2.4vh;margin:-1.2vh 0 0 -2.5vh;border-radius:.8vh;background:#e2553f;border:.3vh solid #3a2a25;opacity:.6;box-sizing:border-box}
 </style>
 <canvas id=c></canvas>
-<div id=h><b>S</b> / <b>D</b> tiller &nbsp;·&nbsp; <b>I</b> / <b>O</b> sheet in / out &nbsp;·&nbsp; <b>A</b> anchor &nbsp;·&nbsp; <b>&minus;</b> / <b>+</b> wind &nbsp;·&nbsp; <b>N</b> night &nbsp;·&nbsp; drag to look, wheel to zoom</div>
-<div id=b><button id=w0>wind &minus;</button><button id=w1>wind +</button><button id=nt>day / night</button></div>
+<div id=mm></div>
+<div id=h class=s><span class=k><b>S / D</b>tiller left / right<br><b>I / O</b>sheet in / out<br><b>A</b>anchor<br><b>&minus; / +</b>less / more wind<br><b>N</b>day / night<br><b>drag</b>look around<br><b>wheel</b>zoom</span><span class=m><b>tiller</b>drag the stick left / right<br><b>sheet</b>pull the rope down to haul in, up to ease<br><b>drag</b>look around<br><b>pinch</b>zoom</span></div>
+<div id=b><button id=an>anchor</button><button id=w0>wind &minus;</button><button id=w1>wind +</button><button id=nt>day / night</button></div>
+<div id=tl><i></i></div><div id=ms><i></i><u></u></div>
 <pre id=o></pre>
 <script>
 (async()=>{
 const {sin,cos,sqrt,abs,min,max,floor,PI,atan2,hypot,pow,round}=Math;
 const Q=new URLSearchParams(location.search),CAP=Q.has('cap'),BENCH=Q.has('bench'),OFF=CAP||Q.has('off');
 const out=document.getElementById('o'),hint=document.getElementById('h'),cv=document.getElementById('c');
-if(CAP||BENCH)hint.style.display=document.getElementById('b').style.display='none';
+const $=i=>document.getElementById(i),TOUCH=Q.has('touch')||matchMedia('(pointer:coarse)').matches;
+if(TOUCH)document.body.classList.add('t');if((CAP&&!Q.has('ui'))||BENCH)document.body.classList.add('x');
 if(!navigator.gpu){out.textContent='This scene needs WebGPU (Chrome 113+ / Edge / recent Safari).';return}
 const ad=await navigator.gpu.requestAdapter({powerPreference:'high-performance'});
 if(!ad){out.textContent='No WebGPU adapter available.';return}
@@ -585,18 +604,35 @@ let T=0,bx=0,bz=0,psi=-PI/2,bv=3.2,bl=0,til=0,sheet=.62,boom=.6,boomV=0,heel=0,p
 const keys=new Uint8Array(4),KM={KeyS:0,KeyD:1,KeyI:2,KeyO:3};
 const setWind=k=>{wmulT=cl(wmulT*k,.3,2.2)},toggleNight=()=>{nightT=1-nightT};
 addEventListener('keydown',e=>{const k=KM[e.code],c=e.code;if(k!==undefined)keys[k]=1;else if(e.repeat);else if(c=='KeyA')toggleAnchor();else if(c=='KeyN')toggleNight();
-  else if(c=='Minus'||c=='NumpadSubtract')setWind(.8);else if(c=='Equal'||c=='NumpadAdd')setWind(1.25);hint.style.opacity=0});
-document.getElementById('w0').onclick=()=>setWind(.8);document.getElementById('w1').onclick=()=>setWind(1.25);document.getElementById('nt').onclick=toggleNight;
+  else if(c=='Minus'||c=='NumpadSubtract')setWind(.8);else if(c=='Equal'||c=='NumpadAdd')setWind(1.25);hint.className=''});
+$('w0').onclick=()=>setWind(.8);$('w1').onclick=()=>setWind(1.25);$('nt').onclick=toggleNight;$('an').onclick=toggleAnchor;$('mm').onclick=()=>hint.classList.toggle('s');
 // drag pans the camera 1:1 over the sea; letting go snaps back to the boat
-cv.addEventListener('pointerdown',e=>{drag=1;dpx=e.clientX;dpy=e.clientY;cv.setPointerCapture(e.pointerId)});
-cv.addEventListener('pointermove',e=>{if(drag){const k=2*zoom/cv.clientHeight,dx=(e.clientX-dpx)*k,dy=(e.clientY-dpy)*k/-CF1;dpx=e.clientX;dpy=e.clientY;
-  camX+=-dx*CR0-dy*K;camZ+=-dx*CR2-dy*K}});
-const undrag=()=>{drag=0};cv.addEventListener('pointerup',undrag);cv.addEventListener('pointercancel',undrag);
+// (two pointers pinch-zoom)
+let pid0=-1,pid1=-1,p1x=0,p1y=0,pd=0;
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);
+  if(pid0<0){pid0=e.pointerId;drag=1;dpx=e.clientX;dpy=e.clientY;cv.className='g'}else if(pid1<0){pid1=e.pointerId;p1x=e.clientX;p1y=e.clientY;pd=hypot(p1x-dpx,p1y-dpy)}});
+cv.addEventListener('pointermove',e=>{
+  if(pid1>=0){if(e.pointerId==pid1){p1x=e.clientX;p1y=e.clientY}else{dpx=e.clientX;dpy=e.clientY}
+    const d=hypot(p1x-dpx,p1y-dpy);if(pd>0&&d>0)zoomT=cl(zoomT*pd/d,5.5,24);pd=d}
+  else if(e.pointerId==pid0){const k=2*zoom/cv.clientHeight,dx=(e.clientX-dpx)*k,dy=(e.clientY-dpy)*k/-CF1;dpx=e.clientX;dpy=e.clientY;
+    camX+=-dx*CR0-dy*K;camZ+=-dx*CR2-dy*K}});
+const undrag=e=>{if(e.pointerId==pid1)pid1=-1;else if(e.pointerId==pid0){pid0=pid1;pid1=-1;dpx=p1x;dpy=p1y}if(pid0<0){drag=0;cv.className=''}};
+cv.addEventListener('pointerup',undrag);cv.addEventListener('pointercancel',undrag);
+// touch helm
+const tlE=$('tl'),tlS=tlE.firstChild,msE=$('ms'),msR=msE.firstChild,msK=msE.lastChild;let tHold=0,mY=0,uTil=9,uSh=9;
+const tlMove=e=>{if(tHold){til=cl(-atan2(e.clientX-innerWidth/2,innerHeight*1.22-e.clientY)*1.5,-.6,.6);hint.className=''}};
+tlE.addEventListener('pointerdown',e=>{tHold=1;tlE.setPointerCapture(e.pointerId);tlMove(e)});tlE.addEventListener('pointermove',tlMove);
+tlE.addEventListener('pointerup',()=>{tHold=0});tlE.addEventListener('pointercancel',()=>{tHold=0});
+msE.addEventListener('pointerdown',e=>{mY=e.clientY;msE.setPointerCapture(e.pointerId)});
+msE.addEventListener('pointermove',e=>{if(e.buttons||e.pointerType=='touch'){sheet=cl(sheet-(e.clientY-mY)/innerHeight*2.6,.12,1.5);mY=e.clientY}});
+// DOM is only touched when the helm is on screen and a value actually moved
+function ui(){if(abs(til-uTil)>.003){uTil=til;tlS.style.transform='rotate('+(-til/1.5*57.3).toFixed(1)+'deg)'}
+  if(abs(sheet-uSh)>.004){uSh=sheet;msR.style.backgroundPositionY=(-sheet*30).toFixed(1)+'vh';msK.style.top=(100-(sheet-.12)/1.38*100).toFixed(1)+'%'}}
 addEventListener('keyup',e=>{const k=KM[e.code];if(k!==undefined)keys[k]=0});
 addEventListener('wheel',e=>{zoomT=cl(zoomT*(e.deltaY>0?1.1:.91),5.5,24)},{passive:true});
 function toggleAnchor(){anch=1-anch;if(anch){anx=bx+cos(psi)*2.4;anz=bz+sin(psi)*2.4;anT=T}}
 // scripted fly-through (screen-right / screen-depth waypoints)
-const WP=new Float32Array([24,25,44,22,66,28,72,6,80,-10,100,6,112,36,98,58].map((v,i,a)=>i&1?-K*(a[i-1]+v):K*(v-a[i+1])));
+const WP=new Float32Array([24,25,44,22,66,28,72,6,80,-10,100,6,112,36,98,58,80,80,62,104].map((v,i,a)=>i&1?-K*(a[i-1]+v):K*(v-a[i+1])));
 const NWP=WP.length/2;
 // creatures: x,z,heading,phase
 const CRE=new Float32Array(16),CSP=[1.5,2.3,1.9,2.6],COR=[0,22,0,13],CTM=new Float32Array(4),CON=new Uint8Array(4);
@@ -633,7 +669,7 @@ function sim(dt){
     sheet+=cl(cl(abs(bfree)*.6,.14,1.45)-sheet,-.8*dt,.8*dt);
   }else{
     const k=keys[0]-keys[1];
-    if(k)til+=k*1.7*dt;else til-=cl(til,-.9*dt,.9*dt);
+    if(k)til+=k*1.7*dt;else if(!tHold)til-=cl(til,-.9*dt,.9*dt);
     sheet+=(keys[3]-keys[2])*.8*dt;
   }
   til=cl(til,-.6,.6);sheet=cl(sheet,.12,1.5);
@@ -815,7 +851,7 @@ function frame(now){
   if(benchOn){if(bN<BMAX)fms[bN++]=dt*1e3;if(now-bT0>=BSEC*1e3){benchOn=0;halt=1;setTimeout(benchDone,50)}zoomT=11+4*sin((now-bT0)*.00021)}
   sim(dt>.05?.05:dt<0?0:dt);
   if(halt)return;
-  render();requestAnimationFrame(frame)}
+  if(TOUCH)ui();render();requestAnimationFrame(frame)}
 if(CAP){
   window.sf={set:setPose,step:(dt,n)=>{for(let i=0;i<n;i++)sim(dt)},fly:()=>{setPose(4,0,-2.5,11,0,4);AP=1;wpi=0},zoom:z=>{zoom=zoomT=z},
     draw:async()=>{resize();render();const bpr=RW*4+255&~255,rb=dev.createBuffer({size:bpr*RH,usage:B.MAP_READ|B.COPY_DST}),en=dev.createCommandEncoder();
@@ -826,7 +862,7 @@ if(CAP){
   setPose(4,0,-2.5,11,0,4);AP=0;
   if(BENCH){AP=1;wpi=0;
     setTimeout(()=>{benchOn=1;bN=gN=0;bT0=performance.now()},1500)}
-  setTimeout(()=>hint.style.opacity=0,14000);
+  setTimeout(()=>hint.className='',12000);
   requestAnimationFrame(t=>{last=t;requestAnimationFrame(frame)});
 }
 })();
