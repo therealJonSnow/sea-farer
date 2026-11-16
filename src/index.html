@@ -16,7 +16,8 @@ body.x>div{display:none!important}
 body.t .k,body:not(.t) .m{display:none}
 #o{position:fixed;left:16px;top:12px;margin:0;font:13px/1.5 ui-monospace,monospace;color:#3a3550;background:#f6f0e2e6;padding:8px 12px;border-radius:8px;white-space:pre}
 #o:empty{display:none}
-#b{position:fixed;right:18px;top:16px;display:flex;gap:6px}
+#b{position:fixed;right:18px;top:16px;display:none;gap:6px}
+body.t #b{display:flex}
 #b button{font:14px Georgia,serif;color:#3a3550;background:#f6f0e2d9;border:1.5px solid #3a355066;border-radius:16px;padding:5px 12px;cursor:pointer}
 /* touch helm: a tiller pivoting below the screen and a mainsheet to haul on */
 #tl,#ms{position:fixed;display:none;touch-action:none;cursor:grab}
@@ -610,14 +611,15 @@ $('w0').onclick=()=>setWind(.8);$('w1').onclick=()=>setWind(1.25);$('nt').onclic
 // (two pointers pinch-zoom)
 let pid0=-1,pid1=-1,p1x=0,p1y=0,pd=0;
 cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);
-  if(pid0<0){pid0=e.pointerId;drag=1;dpx=e.clientX;dpy=e.clientY;cv.className='g'}else if(pid1<0){pid1=e.pointerId;p1x=e.clientX;p1y=e.clientY;pd=hypot(p1x-dpx,p1y-dpy)}});
-cv.addEventListener('pointermove',e=>{
+  if(pid0<0||pid0==e.pointerId){pid0=e.pointerId;pid1=-1;drag=1;dpx=e.clientX;dpy=e.clientY;cv.className='g'}else if(pid1<0){pid1=e.pointerId;p1x=e.clientX;p1y=e.clientY;pd=hypot(p1x-dpx,p1y-dpy)}});
+cv.addEventListener('pointermove',e=>{if(e.pointerType=='mouse'&&!e.buttons){pid0=pid1=-1;drag=0;cv.className='';return}
   if(pid1>=0){if(e.pointerId==pid1){p1x=e.clientX;p1y=e.clientY}else{dpx=e.clientX;dpy=e.clientY}
     const d=hypot(p1x-dpx,p1y-dpy);if(pd>0&&d>0)zoomT=cl(zoomT*pd/d,5.5,24);pd=d}
   else if(e.pointerId==pid0){const k=2*zoom/cv.clientHeight,dx=(e.clientX-dpx)*k,dy=(e.clientY-dpy)*k/-CF1;dpx=e.clientX;dpy=e.clientY;
     camX+=-dx*CR0-dy*K;camZ+=-dx*CR2-dy*K}});
 const undrag=e=>{if(e.pointerId==pid1)pid1=-1;else if(e.pointerId==pid0){pid0=pid1;pid1=-1;dpx=p1x;dpy=p1y}if(pid0<0){drag=0;cv.className=''}};
-cv.addEventListener('pointerup',undrag);cv.addEventListener('pointercancel',undrag);
+for(const n of['pointerup','pointercancel'])addEventListener(n,undrag);
+cv.addEventListener('lostpointercapture',undrag);addEventListener('blur',()=>{pid0=pid1=-1;drag=0;cv.className=''});
 // touch helm
 const tlE=$('tl'),tlS=tlE.firstChild,msE=$('ms'),msR=msE.firstChild,msK=msE.lastChild;let tHold=0,mY=0,uTil=9,uSh=9;
 const tlMove=e=>{if(tHold){til=cl(-atan2(e.clientX-innerWidth/2,innerHeight*1.22-e.clientY)*1.5,-.6,.6);hint.className=''}};
