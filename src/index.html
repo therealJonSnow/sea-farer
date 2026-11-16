@@ -9,30 +9,34 @@ canvas{width:100vw;height:100vh;display:block;cursor:grab;touch-action:none}
 canvas.g{cursor:grabbing}
 body.x>div{display:none!important}
 /* hover zone over the chart (drawn in the shader) and the controls card attached to it */
-#mm{position:fixed;left:3.47vh;bottom:3.47vh;width:18.06vh;height:18.06vh;border-radius:50%;cursor:help}
-#h{position:fixed;left:24vh;bottom:4vh;font:14px/1.75 Georgia,serif;color:#3a3550;background:#f6f0e2e6;border:1.5px solid #3a355066;padding:9px 18px;border-radius:14px;pointer-events:none;opacity:0;transition:opacity .5s;white-space:nowrap}
+#mm{position:fixed;border-radius:50%;cursor:help}
+#h{position:fixed;bottom:4vh;font:14px/1.75 Georgia,serif;color:#3a3550;background:#f6f0e2e6;border:1.5px solid #3a355066;padding:9px 18px;border-radius:14px;pointer-events:none;opacity:0;transition:opacity .5s;white-space:nowrap}
 #h.s,#mm:hover+#h{opacity:1}
 #h b{display:inline-block;min-width:4.2em}
 body.t .k,body:not(.t) .m{display:none}
+body.t #h{bottom:auto;white-space:normal;box-sizing:border-box;max-width:min(calc(100vw - 20px),340px);font:13px/1.6 Georgia,serif;padding:8px 14px}
+body.t #h b{min-width:3.6em}
+body.t #mm:after{content:"?";position:absolute;right:-5px;bottom:-5px;width:20px;height:20px;border-radius:50%;background:#f6f0e2;border:1.5px solid #3a3550;font:bold 13px/20px Georgia,serif;text-align:center;color:#3a3550}
 #o{position:fixed;left:16px;top:12px;margin:0;font:13px/1.5 ui-monospace,monospace;color:#3a3550;background:#f6f0e2e6;padding:8px 12px;border-radius:8px;white-space:pre}
 #o:empty{display:none}
 #b{position:fixed;right:18px;top:16px;display:none;gap:6px}
-body.t #b{display:flex}
+body.t #b{display:flex;right:10px;top:10px}
+body.t #b button{font-size:15px;padding:6px 11px;touch-action:manipulation}
 #b button{font:14px Georgia,serif;color:#3a3550;background:#f6f0e2d9;border:1.5px solid #3a355066;border-radius:16px;padding:5px 12px;cursor:pointer}
 /* touch helm: a tiller pivoting below the screen and a mainsheet to haul on */
 #tl,#ms{position:fixed;display:none;touch-action:none;cursor:grab}
 body.t #tl,body.t #ms{display:block}
-#tl{left:50%;bottom:0;width:64vw;height:36vh;transform:translateX(-50%)}
-#tl i{position:absolute;left:50%;bottom:-22vh;width:3.4vh;height:54vh;margin-left:-1.7vh;border-radius:1.7vh;background:linear-gradient(90deg,#7c4e2e,#cf9459 45%,#7c4e2e);border:.3vh solid #3a2a25;opacity:.5;transform-origin:50% 100%;box-sizing:border-box}
-#tl i:after{content:"";position:absolute;left:50%;top:-1.5vh;width:6vh;height:6vh;margin-left:-3vh;border-radius:50%;background:#cf9459;border:.3vh solid #3a2a25;box-sizing:border-box}
+#tl{left:50%;bottom:0;width:50vw;height:24vh;transform:translateX(-50%)}
+#tl i{position:absolute;left:50%;bottom:-16vh;width:2.4vh;height:34vh;margin-left:-1.2vh;border-radius:1.2vh;background:linear-gradient(90deg,#7c4e2e,#cf9459 45%,#7c4e2e);border:.3vh solid #3a2a25;opacity:.5;transform-origin:50% 100%;box-sizing:border-box}
+#tl i:after{content:"";position:absolute;left:50%;top:-1.2vh;width:4.4vh;height:4.4vh;margin-left:-2.2vh;border-radius:50%;background:#cf9459;border:.3vh solid #3a2a25;box-sizing:border-box}
 #ms{right:2vh;top:13vh;bottom:5vh;width:11vh}
 #ms i{position:absolute;left:50%;top:0;bottom:0;width:2.6vh;margin-left:-1.3vh;border-radius:1.3vh;opacity:.5;background:repeating-linear-gradient(-55deg,#efe0b8 0 1.2vh,#b3945c 1.2vh 2.4vh);border:.3vh solid #3a2a25;box-sizing:border-box}
 #ms u{position:absolute;left:50%;width:5vh;height:2.4vh;margin:-1.2vh 0 0 -2.5vh;border-radius:.8vh;background:#e2553f;border:.3vh solid #3a2a25;opacity:.6;box-sizing:border-box}
 </style>
 <canvas id=c></canvas>
 <div id=mm></div>
-<div id=h class=s><span class=k><b>S / D</b>tiller left / right<br><b>I / O</b>sheet in / out<br><b>A</b>anchor<br><b>&minus; / +</b>less / more wind<br><b>N</b>day / night<br><b>drag</b>look around<br><b>wheel</b>zoom</span><span class=m><b>tiller</b>drag the stick left / right<br><b>sheet</b>pull the rope down to haul in, up to ease<br><b>drag</b>look around<br><b>pinch</b>zoom</span></div>
-<div id=b><button id=an>anchor</button><button id=w0>wind &minus;</button><button id=w1>wind +</button><button id=nt>day / night</button></div>
+<div id=h class=s><span class=k><b>S / D</b>tiller left / right<br><b>I / O</b>sheet in / out<br><b>A</b>anchor<br><b>&minus; / +</b>less / more wind<br><b>N</b>day / night<br><b>drag</b>look around<br><b>wheel</b>zoom</span><span class=m><b>tiller</b>drag the stick left / right<br><b>sheet</b>pull the rope down to haul in, up to ease<br><b>pinch</b>zoom<br><b>&#9875;</b>drop / weigh anchor<br><b>wind</b>less / more wind<br><b>&#9790;</b>day / night</span></div>
+<div id=b><button id=an>&#9875;</button><button id=w0>wind&minus;</button><button id=w1>wind+</button><button id=nt>&#9790;</button></div>
 <div id=tl><i></i></div><div id=ms><i></i><u></u></div>
 <pre id=o></pre>
 <script>
@@ -65,7 +69,7 @@ const vn=(x,y,P)=>{const xi=floor(x),yi=floor(y),fx=x-xi,fy=y-yi,u=fx*fx*(3-2*fx
 const fbm=(x,y)=>vn(x,y)*.57+vn(x*2.1+7.3,y*2.1+1.7)*.29+vn(x*4.3+3.1,y*4.3+9.2)*.14;
 
 // ───────────────────────── world
-const WH=180,HM=192,HN=2048,K=.70711,DEEP=-5.5;
+const K=.70711,WH=180,HM=192,HN=2048,DEEP=-5.5;
 // islands: screen-right, screen-depth, radius, type(0 cay,1 grassy,2 cliffs,3 stack), hill, cliff
 const IS=[[-17,15,11,1,1.3,0],[17,5,4.2,3,2.7,0],[5,-24,7,0,.35,0],[30,56,22,2,2.2,2.4],[-56,20,16,2,1.5,2],[-34,-46,12,1,1.8,0],
 [62,-24,14,2,1.2,1.9],[76,40,9,0,.5,0],[0,97,17,1,2.4,0],[-80,80,13,2,1,2.2],[-96,-30,15,1,1.6,0],[20,-86,16,2,1.6,2.6],[102,-70,12,1,1.4,0],
@@ -90,8 +94,8 @@ function hAt(x,z){
   const ix=fx|0,iz=fz|0,i=iz*HN+ix,u=fx-ix,v=fz-iz,a=hmap[i],b=hmap[i+1],c=hmap[i+HN],d=hmap[i+HN+1];
   return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v}
 // waves: dirx, dirz, k, amplitude, omega   (shared by CPU buoyancy and WGSL)
-let WA=1,HX=0,HZ=0;const WX=.342,WZ=-.94; // wind blows TOWARD this direction (constant)
-const WV=[[.342,-.94,.45,.21,1.15],[.83,-.56,.74,.1,1.55],[-.2,-.98,1.26,.045,2.2]];
+let WA=1,HX=0,HZ=0;const WX=K,WZ=K; // wind blows TOWARD this direction (constant)
+const WV=[[.707,.707,.45,.21,1.15],[.966,.259,.74,.1,1.55],[.259,.966,1.26,.045,2.2]];
 function waveH(x,z,t){let h=0;for(let i=0;i<3;i++){const w=WV[i];h+=w[3]*sin((x*w[0]+z*w[1])*w[2]-t*w[4])}return h*WA*(.2+.8*sm(0,3,-hAt(x,z)))}
 
 // ───────────────────────── mesh builder
@@ -275,7 +279,7 @@ const wvb=mkbuf(wv,B.VERTEX),wib=mkbuf(wi,B.INDEX);
 const NW=72,WKD=new Float32Array((NW+1)*10),wkb=mkbuf(WKD,B.VERTEX);
 const wkx=new Float32Array(NW),wkz=new Float32Array(NW),wkt=new Float32Array(NW).fill(-99),wks=new Float32Array(NW);let wkh=0,wka=0;
 // uniforms
-const U=new Float32Array(92),U2=new Float32Array(92),ub=mkbuf(U,B.UNIFORM),ub2=mkbuf(U2,B.UNIFORM);
+const U=new Float32Array(96),U2=new Float32Array(96),ub=mkbuf(U,B.UNIFORM),ub2=mkbuf(U2,B.UNIFORM);
 // height texture (r16float)
 {const f=new Float32Array(1),u=new Uint32Array(f.buffer),hf=new Uint16Array(HN*HN);
  for(let i=0;i<HN*HN;i++){f[0]=hmap[i];const x=u[0],s=x>>16&0x8000,e=(x>>23&255)-112,m=x&0x7fffff;hf[i]=e<=0?s:e>=31?s|0x7c00:s|e<<10|m>>13}
@@ -287,14 +291,15 @@ const U=new Float32Array(92),U2=new Float32Array(92),ub=mkbuf(U,B.UNIFORM),ub2=m
    d[o++]=cl((ft(x,y,32,3e3)-.5)*1.5+.5+(hsh(x,y)-.5)*.16,0,1)*255}
  var nzT=dev.createTexture({size:[N,N],format:'rgba8unorm',usage:X.TEXTURE_BINDING|X.COPY_DST});
  dev.queue.writeTexture({texture:nzT},d,{bytesPerRow:N*4},[N,N])}
-const SM=2048,shT=dev.createTexture({size:[SM,SM],format:'depth32float',usage:X.RENDER_ATTACHMENT|X.TEXTURE_BINDING}),shV=shT.createView();
+const SM=TOUCH?1024:2048,shT=dev.createTexture({size:[SM,SM],format:'depth32float',usage:X.RENDER_ATTACHMENT|X.TEXTURE_BINDING}),shV=shT.createView();
 const lin=dev.createSampler({magFilter:'linear',minFilter:'linear'}),rep=dev.createSampler({magFilter:'linear',minFilter:'linear',addressModeU:'repeat',addressModeV:'repeat'}),
   cmp=dev.createSampler({magFilter:'linear',minFilter:'linear',compare:'less'});
 
 // ───────────────────────── shaders
+const SHTAP=TOUCH?'return textureSampleCompareLevel(shT,cmp,uv,z);':'s+=textureSampleCompareLevel(shT,cmp,uv+vec2f(-o,-o),z);s+=textureSampleCompareLevel(shT,cmp,uv+vec2f(o,-o),z);s+=textureSampleCompareLevel(shT,cmp,uv+vec2f(-o,o),z);s+=textureSampleCompareLevel(shT,cmp,uv+vec2f(o,o),z);return s*.25;';
 const WAVES=WV.map(w=>'a=dot(p,vec2f('+w[0]+','+w[1]+'))*'+w[2]+'-t*'+w[4]+';r+=vec3f('+w[3]+'*sin(a),vec2f('+w[0]+','+w[1]+')*'+(w[2]*w[3]).toFixed(5)+'*cos(a));').join('');
 const WGSL_COMMON=/*wgsl*/`
-struct G{vp:mat4x4f,lvp:mat4x4f,camR:vec4f,camU:vec4f,camF:vec4f,tgt:vec4f,sun:vec4f,wind:vec4f,res:vec4f,boat:vec4f,hud:vec4f,misc:vec4f,cre:array<vec4f,4>,anc:vec4f}
+struct G{vp:mat4x4f,lvp:mat4x4f,camR:vec4f,camU:vec4f,camF:vec4f,tgt:vec4f,sun:vec4f,wind:vec4f,res:vec4f,boat:vec4f,hud:vec4f,misc:vec4f,cre:array<vec4f,4>,anc:vec4f,ui:vec4f}
 @group(0)@binding(0)var<uniform>g:G;
 const PAPER=vec3f(.965,.94,.885);`;
 const WGSL_SCENE=WGSL_COMMON+/*wgsl*/`
@@ -312,10 +317,8 @@ ${WAVES}
 return r*g.misc.w;}
 fn h2(p:vec2f)->vec2f{return fract(sin(vec2f(dot(p,vec2f(127.1,311.7)),dot(p,vec2f(269.5,183.3))))*43758.5453);}
 fn shadow(wp:vec3f,n:vec3f)->f32{
-  let q=g.lvp*vec4f(wp+n*sign(dot(n,g.sun.xyz)+.0001)*.1+g.sun.xyz*.06,1.);let uv=q.xy*vec2f(.5,-.5)+.5;let z=q.z-.0009;let o=g.sun.w;var s=0.;
-  s+=textureSampleCompareLevel(shT,cmp,uv+vec2f(-o,-o),z);s+=textureSampleCompareLevel(shT,cmp,uv+vec2f(o,-o),z);
-  s+=textureSampleCompareLevel(shT,cmp,uv+vec2f(-o,o),z);s+=textureSampleCompareLevel(shT,cmp,uv+vec2f(o,o),z);
-  return s*.25;}
+  let q=g.lvp*vec4f(wp+n*sign(dot(n,g.sun.xyz)+.0001)*.1+g.sun.xyz*.06,1.);let uv=q.xy*vec2f(.5,-.5)+.5;let z=q.z-.0009;${TOUCH?'':'let o=g.sun.w;var s=0.;'}
+  ${SHTAP}}
 fn cloud(p:vec2f)->f32{return smoothstep(.5,.7,nz((p-g.wind.xy*g.wind.w*.5)*.0043).g);}
 fn shade(c:vec3f,n:vec3f,wp:vec3f)->vec3f{
   let d=dot(n,g.sun.xyz);let l=smoothstep(-.12,.3,d)*shadow(wp,n);
@@ -517,12 +520,12 @@ fn seg(p:vec2f,a:vec2f,b:vec2f)->f32{let d=b-a;return length(p-a-d*clamp(dot(p-a
   // unpainted paper border
   let e=min(min(px.x,R.x-px.x),min(px.y,R.y-px.y))/sc+(w2.r-.5)*20.+(w1.g-.5)*26.;
   let paper=PAPER*(1.+(pap-.5)*.07);
-  c=mix(paper,c*(1.-.13*smoothstep(64.,36.,e)),smoothstep(26.,36.,e));
+  c=mix(c,mix(paper,c*(1.-.13*smoothstep(64.,36.,e)),smoothstep(26.,36.,e)),g.ui.w);
   // trim dial: hull points up, arrow = apparent wind, cream line = boom, ticks = sheet limit
   // chart: local map (screen-aligned) with the boat, boom, sheet limit, apparent wind and anchor drawn on it
-  let d=(px-vec2f(180.,R.y/sc-180.)*sc)/(130.*sc);
+  let d=(px-g.ui.xy)/g.ui.z;
   if(g.misc.z>0.&&dot(d,d)<1.4){
-    let r=length(d)+(w2.r-.5)*.035;let ik=vec3f(.27,.2,.28);let aa=1.5/(130.*sc);
+    let r=length(d)+(w2.r-.5)*.035;let ik=vec3f(.27,.2,.28);let aa=1.5/g.ui.z;
     let wm2=g.boat.xy+vec2f(d.x+d.y,d.y-d.x)*${(K*64).toFixed(3)};
     let hm=textureSampleLevel(hmT,lin,wm2/${2*HM}.+.5,0.).r;
     var h=mix(vec3f(.6,.83,.9),vec3f(.8,.93,.91),smoothstep(-3.5,-.3,hm));
@@ -584,8 +587,10 @@ const pdShadow={colorAttachments:[],depthStencilAttachment:{view:shV,depthClearV
     depthStencilAttachment:{view:null,depthClearValue:1,depthLoadOp:'clear',depthStoreOp:'discard'},timestampWrites:tw(2)},
   pdPost={colorAttachments:[{view:null,loadOp:'clear',storeOp:'store'}],timestampWrites:tw(4)};
 const FW=+Q.get('w'),FH=+Q.get('h');let RW=0,RH=0,bgP=null,rts=[],offT=null,offV=null;
+let RS=1,CHX=0,CHY=0,CHR=1,fAcc=0,fCnt=0;
 function resize(){
-  const w=max(8,min(4096,FW||round(cv.clientWidth*devicePixelRatio))),h=max(8,min(4096,FH||round(cv.clientHeight*devicePixelRatio)));
+  const cw=cv.clientWidth,ch=cv.clientHeight,dp=devicePixelRatio*(TOUCH?RS*min(1,sqrt(75e4/(cw*ch*devicePixelRatio*devicePixelRatio))):1);
+  const w=max(8,min(4096,FW||round(cw*dp))),h=max(8,min(4096,FH||round(ch*dp)));
   if(w==RW&&h==RH)return;RW=cv.width=w;RH=cv.height=h;for(const t of rts)t.destroy();
   const T=(f,s,u)=>{const t=dev.createTexture({size:[w,h],format:f,sampleCount:s,usage:u});rts.push(t);return t.createView()};
   rts=[];const A=pdScene.colorAttachments;
@@ -593,6 +598,10 @@ function resize(){
   A[0].resolveTarget=T('rgba8unorm',1,X.RENDER_ATTACHMENT|X.TEXTURE_BINDING);A[1].resolveTarget=T('rgba16float',1,X.RENDER_ATTACHMENT|X.TEXTURE_BINDING);
   pdScene.depthStencilAttachment.view=T('depth24plus',MS,X.RENDER_ATTACHMENT);
   if(OFF){offV=T('rgba8unorm',1,X.RENDER_ATTACHMENT|X.COPY_SRC);offT=rts[rts.length-1]}
+  // the chart: bottom-left on desktop, small and top-left on touch; the DOM hover/tap zone follows it
+  if(TOUCH){CHR=min(w,h)*.115;CHX=CHY=CHR*1.22}else{CHR=130*h/1440;CHX=180*h/1440;CHY=h-CHX}
+  const k=cw/w,mm=$('mm').style;mm.left=(CHX-CHR)*k+'px';mm.top=(CHY-CHR)*k+'px';mm.width=mm.height=2*CHR*k+'px';
+  if(TOUCH){hint.style.left='10px';hint.style.top=(CHY+CHR)*k+12+'px'}else hint.style.left=(CHX+CHR)*k+16+'px';
   bgP=dev.createBindGroup({layout:bglP,entries:[A[0].resolveTarget,A[1].resolveTarget,nzT.createView(),lin,rep,hmT.createView()].map((r,i)=>({binding:i,resource:r}))})}
 resize();addEventListener('resize',resize);
 
@@ -612,19 +621,19 @@ $('w0').onclick=()=>setWind(.8);$('w1').onclick=()=>setWind(1.25);$('nt').onclic
 // drag pans the camera 1:1 over the sea; letting go snaps back to the boat
 // (two pointers pinch-zoom)
 let pid0=-1,pid1=-1,p1x=0,p1y=0,pd=0;
-cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);if(TOUCH)hint.className='';
   if(pid0<0||pid0==e.pointerId){pid0=e.pointerId;pid1=-1;drag=1;dpx=e.clientX;dpy=e.clientY;cv.className='g'}else if(pid1<0){pid1=e.pointerId;p1x=e.clientX;p1y=e.clientY;pd=hypot(p1x-dpx,p1y-dpy)}});
 cv.addEventListener('pointermove',e=>{if(e.pointerType=='mouse'&&!e.buttons){pid0=pid1=-1;drag=0;cv.className='';return}
   if(pid1>=0){if(e.pointerId==pid1){p1x=e.clientX;p1y=e.clientY}else{dpx=e.clientX;dpy=e.clientY}
     const d=hypot(p1x-dpx,p1y-dpy);if(pd>0&&d>0)zoomT=cl(zoomT*pd/d,5.5,24);pd=d}
-  else if(e.pointerId==pid0){const k=2*zoom/cv.clientHeight,dx=(e.clientX-dpx)*k,dy=(e.clientY-dpy)*k/-CF1;dpx=e.clientX;dpy=e.clientY;
+  else if(!TOUCH&&e.pointerId==pid0){const k=2*zoom/cv.clientHeight,dx=(e.clientX-dpx)*k,dy=(e.clientY-dpy)*k/-CF1;dpx=e.clientX;dpy=e.clientY;
     camX+=-dx*CR0-dy*K;camZ+=-dx*CR2-dy*K}});
 const undrag=e=>{if(e.pointerId==pid1)pid1=-1;else if(e.pointerId==pid0){pid0=pid1;pid1=-1;dpx=p1x;dpy=p1y}if(pid0<0){drag=0;cv.className=''}};
 for(const n of['pointerup','pointercancel'])addEventListener(n,undrag);
 cv.addEventListener('lostpointercapture',undrag);addEventListener('blur',()=>{pid0=pid1=-1;drag=0;cv.className=''});
 // touch helm
 const tlE=$('tl'),tlS=tlE.firstChild,msE=$('ms'),msR=msE.firstChild,msK=msE.lastChild;let tHold=0,mY=0,uTil=9,uSh=9;
-const tlMove=e=>{if(tHold){til=cl(-atan2(e.clientX-innerWidth/2,innerHeight*1.22-e.clientY)*1.5,-.6,.6);hint.className=''}};
+const tlMove=e=>{if(tHold){til=cl(-atan2(e.clientX-innerWidth/2,innerHeight*1.16-e.clientY)*1.5,-.6,.6);hint.className=''}};
 tlE.addEventListener('pointerdown',e=>{tHold=1;tlE.setPointerCapture(e.pointerId);tlMove(e)});tlE.addEventListener('pointermove',tlMove);
 tlE.addEventListener('pointerup',()=>{tHold=0});tlE.addEventListener('pointercancel',()=>{tHold=0});
 msE.addEventListener('pointerdown',e=>{mY=e.clientY;msE.setPointerCapture(e.pointerId)});
@@ -636,7 +645,7 @@ addEventListener('keyup',e=>{const k=KM[e.code];if(k!==undefined)keys[k]=0});
 addEventListener('wheel',e=>{zoomT=cl(zoomT*(e.deltaY>0?1.1:.91),5.5,24)},{passive:true});
 function toggleAnchor(){anch=1-anch;if(anch){anx=bx+cos(psi)*2.4;anz=bz+sin(psi)*2.4;anT=T}}
 // scripted fly-through (screen-right / screen-depth waypoints)
-const WP=new Float32Array([24,25,44,22,66,28,72,6,80,-10,100,6,112,36,98,58,80,80,62,104].map((v,i,a)=>i&1?-K*(a[i-1]+v):K*(v-a[i+1])));
+const WP=new Float32Array([30,-6,44,-2,40,-30,24,-40,0,-52,-14,-66,-40,-68,-60,-60,-84,-62,-100,-80].map((v,i,a)=>i&1?-K*(a[i-1]+v):K*(v-a[i+1])));
 const NWP=WP.length/2;
 // creatures: x,z,heading,phase
 const CRE=new Float32Array(16),CSP=[1.5,2.3,1.9,2.6],COR=[0,22,0,13],CTM=new Float32Array(4),CON=new Uint8Array(4);
@@ -758,7 +767,8 @@ function update(){
   U[68]=anch;U[69]=RH/(2*hh);U[70]=HUD;U[71]=WA;
   for(let i=0;i<16;i++)U[72+i]=CRE[i];
   U[88]=anx-bx;U[89]=anz-bz;
-  for(let i=0;i<92;i++)U2[i]=U[i];for(let i=0;i<16;i++)U2[i]=U[16+i];
+  U[92]=CHX;U[93]=CHY;U[94]=CHR;U[95]=TOUCH?0:1;
+  for(let i=0;i<96;i++)U2[i]=U[i];for(let i=0;i<16;i++)U2[i]=U[16+i];
   dev.queue.writeBuffer(ub,0,U);dev.queue.writeBuffer(ub2,0,U2);
 
   // boat and its parts
@@ -857,15 +867,16 @@ function frame(now){
   if(benchOn){if(bN<BMAX)fms[bN++]=dt*1e3;if(now-bT0>=BSEC*1e3){benchOn=0;halt=1;setTimeout(benchDone,50)}zoomT=11+4*sin((now-bT0)*.00021)}
   sim(dt>.05?.05:dt<0?0:dt);
   if(halt)return;
-  if(TOUCH)ui();render();requestAnimationFrame(frame)}
+  if(TOUCH){ui();fAcc+=dt;if(++fCnt==90){if(fAcc/90>.024&&RS>.5){RS*=.8;resize()}fAcc=fCnt=0}}
+  render();requestAnimationFrame(frame)}
 if(CAP){
-  window.sf={set:setPose,step:(dt,n)=>{for(let i=0;i<n;i++)sim(dt)},fly:()=>{setPose(4,0,-2.5,11,0,4);AP=1;wpi=0},zoom:z=>{zoom=zoomT=z},
+  window.sf={set:setPose,step:(dt,n)=>{for(let i=0;i<n;i++)sim(dt)},fly:()=>{setPose(4,0,-.6,11,0,4);AP=1;wpi=0},zoom:z=>{zoom=zoomT=z},
     draw:async()=>{resize();render();const bpr=RW*4+255&~255,rb=dev.createBuffer({size:bpr*RH,usage:B.MAP_READ|B.COPY_DST}),en=dev.createCommandEncoder();
       en.copyTextureToBuffer({texture:offT},{buffer:rb,bytesPerRow:bpr},[RW,RH]);dev.queue.submit([en.finish()]);await rb.mapAsync(GPUMapMode.READ);
       const src=new Uint8Array(rb.getMappedRange()),im=new ImageData(RW,RH);for(let y=0;y<RH;y++)im.data.set(src.subarray(y*bpr,y*bpr+RW*4),y*RW*4);
       cv.getContext('2d').putImageData(im,0,0);rb.destroy()},state:()=>({bx,bz,psi,bv,sheet,boom,wpi,T})};
 }else{
-  setPose(4,0,-2.5,11,0,4);AP=0;
+  setPose(4,0,-.6,11,0,4);AP=0;if(TOUCH&&innerWidth<innerHeight)zoom=zoomT=15;
   if(BENCH){AP=1;wpi=0;
     setTimeout(()=>{benchOn=1;bN=gN=0;bT0=performance.now()},1500)}
   setTimeout(()=>hint.className='',12000);

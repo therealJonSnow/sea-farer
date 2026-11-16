@@ -16,7 +16,9 @@ Open `index.html` in a WebGPU browser (it needs a secure context, so serve it fr
 | drag | look around: the view follows the pointer 1:1 and snaps back to the boat on release |
 | wheel | zoom |
 
-The wind blows from a fixed direction (the ticks on the water, the trees and the masthead pennant all show it). The boom swings downwind until the sheet stops it; the sail only drives when it is held at an angle to the wind, so let it out when running and haul it in when beating. Point too close to the wind and it luffs, and a boat with no way on drifts off downwind. The chart in the corner is a local map with the hull, the boom, the sheet limit and the apparent-wind arrow drawn on it.
+On touch devices the keys are replaced by a tiller stick at the bottom (drag it left / right), a mainsheet rope on the right (pull down to haul in, push up to ease), pinch to zoom, and small buttons for anchor, wind and night. Tap the chart for the controls card. Touch devices also render at a capped resolution, without the paper border, and step the resolution down further if frames run long.
+
+The wind blows from the top of the screen (the ticks on the water, the trees and the masthead pennant all show it). The boom swings downwind until the sheet stops it; the sail only drives when it is held at an angle to the wind, so let it out when running and haul it in when beating. Point too close to the wind and it luffs, and a boat with no way on drifts off downwind. The chart in the corner is a local map with the hull, the boom, the sheet limit and the apparent-wind arrow drawn on it.
 
 ## Layout
 
