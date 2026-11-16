@@ -70,8 +70,8 @@ function hAt(x,z){
   const ix=fx|0,iz=fz|0,i=iz*HN+ix,u=fx-ix,v=fz-iz,a=hmap[i],b=hmap[i+1],c=hmap[i+HN],d=hmap[i+HN+1];
   return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v}
 // waves: dirx, dirz, k, amplitude, omega   (shared by CPU buoyancy and WGSL)
-let WA=1;const WX=.94,WZ=.342; // wind blows TOWARD this direction (constant)
-const WV=[[.94,.342,.45,.21,1.15],[.5,.866,.74,.1,1.55],[.82,-.57,1.26,.045,2.2]];
+let WA=1,HX=0,HZ=0;const WX=.342,WZ=-.94; // wind blows TOWARD this direction (constant)
+const WV=[[.342,-.94,.45,.21,1.15],[.83,-.56,.74,.1,1.55],[-.2,-.98,1.26,.045,2.2]];
 function waveH(x,z,t){let h=0;for(let i=0;i<3;i++){const w=WV[i];h+=w[3]*sin((x*w[0]+z*w[1])*w[2]-t*w[4])}return h*WA*(.2+.8*sm(0,3,-hAt(x,z)))}
 
 // ───────────────────────── mesh builder
@@ -133,8 +133,8 @@ const mHull=mesh(()=>{setT();
 const SL=2.6,SH=3.55;
 const mRig=mesh(()=>{setT();col(.55,.34,.22);cyl(.06,0,0,-2.78,.02,0,.045,.035,6,1);
   KD=2;surf(12,16,(a,b)=>{col(a,b,0);return[a,b,0]});KD=0});
-const mRud=mesh(()=>{setT();col(...DK);box(-.2,-.34,0,.36,.72,.05);box(-.05,.13,0,.13,.4,.08);col(.3,.24,.26);box(.02,-.05,0,.06,.05,.11);box(.02,.2,0,.06,.05,.11);
-  col(.66,.43,.25);cyl(-.04,.27,0,1.05,.38,0,.04,.03,6,1)});
+const mRud=mesh(()=>{setT();col(...DK);box(-.16,-.34,0,.28,.72,.05);box(-.05,.13,0,.13,.4,.08);col(.3,.24,.26);box(.02,-.05,0,.06,.05,.11);box(.02,.2,0,.06,.05,.11);
+  col(.84,.62,.36);cyl(-.04,.27,0,1.05,.38,0,.04,.03,6,1)});
 // the sailor: yellow oilskins, sou'wester, red scarf (the tiller arm is a separate posed instance)
 const mSailor=mesh(()=>{setT(0,0,0,0,0,0,1.25);
   for(const g of[1,-1]){col(.2,.29,.5);cyl(0,.07,g*.1,.3,.09,g*.11,.085,.075,7);cyl(.3,.1,g*.11,.32,-.17,g*.11,.075,.065,7);ball(.3,.09,g*.11,.08,.08,.08,6,5);
@@ -150,7 +150,7 @@ const mSailor=mesh(()=>{setT(0,0,0,0,0,0,1.25);
 const mArm=mesh(()=>{setT();col(1,.8,.16);cyl(0,0,0,1,0,0,1,1,6)});
 const mHand=mesh(()=>{setT();col(.99,.8,.66);ball(0,0,0,.065,.065,.065,6,5)});
 const mPen=mesh(()=>{setT();col(.93,.38,.27);KD=4;WF=x=>x;surf(8,1,(u,v)=>[u*.95,(v-.5)*.36*(1-u*.9),0]);WF=null;KD=0});
-const mRope=mesh(()=>{setT();col(.8,.7,.5);cyl(0,0,0,1,0,0,1,1,5)});
+const mRope=mesh(()=>{setT();col(.62,.5,.36);cyl(0,0,0,1,0,0,1,1,5)});
 const mBuoy=mesh(()=>{setT();col(.93,.3,.22);ball(0,.05,0,.26,.24,.26,8,6);col(.98,.95,.88);cyl(0,.02,0,0,.1,0,.265,.265,8);col(.3,.24,.26);cyl(0,.2,0,0,.55,0,.025,.02,4)});
 // gull
 const mGull=mesh(()=>{setT();col(.99,.98,.95);ball(0,0,0,.27,.1,.105,10,7);ball(.24,.06,0,.09,.085,.085,8,6);
@@ -197,7 +197,7 @@ const terr=IS.map(I=>mesh(()=>{const E=I.R*1.5+2,N=cl(round(E*5),24,220),b=VD.le
 const march=(I,dx,dz,lv)=>{let s=0;while(s<I.R*2&&hAt(I.x+dx*s,I.z+dz*s)>lv)s+=.1;return s};
 const mStruct=mesh(()=>{
   let I=IS[0],l=hypot(I.x,I.z),dx=-I.x/l,dz=-I.z/l,yw=atan2(dz,dx);
-  let s=march(I,dx,dz,.85)-1.2,x=I.x+dx*s,z=I.z+dz*s;
+  let s=march(I,dx,dz,.85)-1.2,x=I.x+dx*s,z=I.z+dz*s;HX=x+dx;HZ=z+dz;
   setT(x,hAt(x,z)-.05,z,yw+.5,0,0,1.3);col(.97,.91,.78);box(0,.6,0,1.5,1.2,1.9);col(.9,.36,.26);
   for(const g of[1,-1])surf(1,1,(u,v)=>[g*(1-v)*1.05,1.2+v*.85,(u-.5)*2.3]);
   col(.97,.91,.78);for(const g of[1,-1])surf(1,1,(u,v)=>[(u-.5)*1.5*(1-v),1.2+v*.61,g*.95]);
@@ -254,7 +254,7 @@ const wvb=mkbuf(wv,B.VERTEX),wib=mkbuf(wi,B.INDEX);
 const NW=72,WKD=new Float32Array((NW+1)*10),wkb=mkbuf(WKD,B.VERTEX);
 const wkx=new Float32Array(NW),wkz=new Float32Array(NW),wkt=new Float32Array(NW).fill(-99),wks=new Float32Array(NW);let wkh=0,wka=0;
 // uniforms
-const U=new Float32Array(88),U2=new Float32Array(88),ub=mkbuf(U,B.UNIFORM),ub2=mkbuf(U2,B.UNIFORM);
+const U=new Float32Array(92),U2=new Float32Array(92),ub=mkbuf(U,B.UNIFORM),ub2=mkbuf(U2,B.UNIFORM);
 // height texture (r16float)
 {const f=new Float32Array(1),u=new Uint32Array(f.buffer),hf=new Uint16Array(HN*HN);
  for(let i=0;i<HN*HN;i++){f[0]=hmap[i];const x=u[0],s=x>>16&0x8000,e=(x>>23&255)-112,m=x&0x7fffff;hf[i]=e<=0?s:e>=31?s|0x7c00:s|e<<10|m>>13}
@@ -273,7 +273,7 @@ const lin=dev.createSampler({magFilter:'linear',minFilter:'linear'}),rep=dev.cre
 // ───────────────────────── shaders
 const WAVES=WV.map(w=>'a=dot(p,vec2f('+w[0]+','+w[1]+'))*'+w[2]+'-t*'+w[4]+';r+=vec3f('+w[3]+'*sin(a),vec2f('+w[0]+','+w[1]+')*'+(w[2]*w[3]).toFixed(5)+'*cos(a));').join('');
 const WGSL_COMMON=/*wgsl*/`
-struct G{vp:mat4x4f,lvp:mat4x4f,camR:vec4f,camU:vec4f,camF:vec4f,tgt:vec4f,sun:vec4f,wind:vec4f,res:vec4f,boat:vec4f,hud:vec4f,misc:vec4f,cre:array<vec4f,4>}
+struct G{vp:mat4x4f,lvp:mat4x4f,camR:vec4f,camU:vec4f,camF:vec4f,tgt:vec4f,sun:vec4f,wind:vec4f,res:vec4f,boat:vec4f,hud:vec4f,misc:vec4f,cre:array<vec4f,4>,anc:vec4f}
 @group(0)@binding(0)var<uniform>g:G;
 const PAPER=vec3f(.965,.94,.885);`;
 const WGSL_SCENE=WGSL_COMMON+/*wgsl*/`
@@ -291,25 +291,26 @@ ${WAVES}
 return r*g.misc.w;}
 fn h2(p:vec2f)->vec2f{return fract(sin(vec2f(dot(p,vec2f(127.1,311.7)),dot(p,vec2f(269.5,183.3))))*43758.5453);}
 fn shadow(wp:vec3f,n:vec3f)->f32{
-  let q=g.lvp*vec4f(wp+n*.1,1.);let uv=q.xy*vec2f(.5,-.5)+.5;let z=q.z-.0009;let o=g.sun.w;var s=0.;
+  let q=g.lvp*vec4f(wp+n*sign(dot(n,g.sun.xyz)+.0001)*.1+g.sun.xyz*.06,1.);let uv=q.xy*vec2f(.5,-.5)+.5;let z=q.z-.0009;let o=g.sun.w;var s=0.;
   s+=textureSampleCompareLevel(shT,cmp,uv+vec2f(-o,-o),z);s+=textureSampleCompareLevel(shT,cmp,uv+vec2f(o,-o),z);
   s+=textureSampleCompareLevel(shT,cmp,uv+vec2f(-o,o),z);s+=textureSampleCompareLevel(shT,cmp,uv+vec2f(o,o),z);
   return s*.25;}
 fn cloud(p:vec2f)->f32{return smoothstep(.5,.7,nz((p-g.wind.xy*g.wind.w*.5)*.0043).g);}
 fn shade(c:vec3f,n:vec3f,wp:vec3f)->vec3f{
   let d=dot(n,g.sun.xyz);let l=smoothstep(-.12,.3,d)*shadow(wp,n);
-  var o=mix(c*vec3f(.78,.72,.9)+vec3f(0.,.0,.02),c,l);
+  var o=mix(c*vec3f(.8,.76,.94)+vec3f(0.,.0,.02),c,l);
   o=mix(o,o*1.08+.03,smoothstep(.8,.9,d)*l*.7);
   return o*(1.-.1*cloud(wp.xz));}
 // night: cool wash everywhere, warm pools from the boat lantern and the sweeping lighthouse beam
 fn tone(c:vec3f,wp:vec3f)->vec3f{
   let nf=g.tgt.w;if(nf<=0.){return c;}
   let bp=g.boat.xy+vec2f(cos(g.boat.z),sin(g.boat.z))*2.3;
-  var L=pow(smoothstep(9.,0.,length(wp.xz-bp)),2.)*.95;
+  var L=pow(smoothstep(6.,0.,length(wp.xz-bp)),1.6)*.9;
   let v=wp.xz-vec2f(${IS[1].x.toFixed(3)},${IS[1].z.toFixed(3)});let dl=length(v);let ba=g.camR.w*.6;
-  L=max(L,smoothstep(.95,.992,dot(v/max(dl,.01),vec2f(cos(ba),sin(ba))))*smoothstep(90.,8.,dl)*.8);
-  L=max(L,smoothstep(8.,1.,dl)*.55);
-  return mix(c,mix(c*vec3f(.27,.37,.7)+vec3f(0.,.01,.06),c*vec3f(1.13,1.,.74),L),nf);}
+  L=max(L,smoothstep(.93,.997,dot(v/max(dl,.01),vec2f(cos(ba),sin(ba))))*smoothstep(90.,6.,dl)*.75);
+  L=max(L,smoothstep(5.5,.5,dl)*.4);
+  L=max(L,smoothstep(3.5,0.,length(wp.xz-vec2f(${HX.toFixed(3)},${HZ.toFixed(3)})))*.6);
+  return mix(c,mix(c*vec3f(.27,.37,.7)+vec3f(0.,.01,.06),c*vec3f(.95,.88,.7)+vec3f(.13,.1,.02),L),nf);}
 fn aux(n:vec3f,wp:vec3f,k:f32)->vec4f{return vec4f(dot(n,g.camR.xyz),dot(n,g.camU.xyz),dot(wp-g.tgt.xyz,g.camF.xyz),k);}
 
 // ── props / terrain
@@ -323,7 +324,7 @@ fn sailP(a:f32,b:f32,q:vec4f)->vec3f{
   var p=v.pos;var n=v.nrm;let k=v.wk.y;let w=v.wk.x;let t=g.camR.w;
   if(k==2.){p=sailP(v.col.x,v.col.y,v.prm);n=normalize(cross(sailP(v.col.x,v.col.y+.02,v.prm)-p,sailP(v.col.x+.02,v.col.y,v.prm)-p));}
   else if(k==3.){let sg=sign(p.z);let z0=abs(p.z);let zi=min(z0,.45);let zo=max(z0-.45,0.);let a=v.prm.x;let b=a+v.prm.z;let f=v.prm.y;
-    p.y+=sin(a)*zi+sin(b)*zo;p.z=sg*(cos(a)*zi+cos(b)*zo)*(1.-.8*f);p.x-=(zi*.3+zo*1.15)*f;}
+    p.y+=sin(a)*zi+sin(b)*zo;p.z=sg*(cos(a)*zi+cos(b)*zo)*(1.-.88*f);p.x-=(zi*.3+zo*1.1)*f;p.y-=z0*.06*f;}
   else if(k==4.){p.z+=sin(p.x*7.-t*13.)*.09*w;p.y+=sin(p.x*5.-t*9.)*.04*w;}
   else if(k==5.){p.y+=w*max(sin(t*20.+p.x*30.+v.prm.x),0.)*.07*v.prm.y;}
   var wp=vec3f(dot(v.m0.xyz,p)+v.m0.w,dot(v.m1.xyz,p)+v.m1.w,dot(v.m2.xyz,p)+v.m2.w);
@@ -351,7 +352,7 @@ fn sailP(a:f32,b:f32,q:vec4f)->vec3f{
   let sand=mix(vec3f(.84,.71,.47),vec3f(.985,.9,.66),smoothstep(.07,.3,p.y+(a.b-.5)*.1));
   var gr=mix(vec3f(.32,.69,.28),vec3f(.5,.78,.3),smoothstep(.38,.62,b.g+(a.g-.5)*.4));
   gr=mix(gr,vec3f(.78,.89,.36),smoothstep(.6,.7,b.r+(a.b-.5)*.25));
-  let gm=smoothstep(.5,.6,h);
+  let gm=smoothstep(.535,.585,h);
   var c=mix(sand,gr,gm);
   c=mix(c,vec3f(.26,.58,.26),gm*(1.-smoothstep(.58,.68,h))*.4);
   // little flowers
@@ -403,14 +404,14 @@ fn creatures(p:vec2f)->f32{
   let a=nz(p*.031);let b=nz(p*.0083+vec2f(.37,.11));
   var c=mix(vec3f(.47,.91,.84),vec3f(.19,.72,.88),smoothstep(.1,1.7,dp));
   c=mix(c,vec3f(.11,.55,.85),smoothstep(1.3,4.8,dp));
-  c=mix(c,c*vec3f(.72,1.04,1.1)+vec3f(0.,.03,.0),smoothstep(.4,.72,b.r)*.55);
-  c*=.87+.26*b.g;
+  c=mix(c,c*vec3f(.72,1.04,1.1)+vec3f(0.,.03,.0),smoothstep(.4,.72,b.r)*.4);
+  c*=.91+.18*b.g;
   c*=.955+.09*nz(vec2f(dot(p,vec2f(.8,.6))*.013,dot(p,vec2f(-.6,.8))*.12)).b; // brush direction
   // seabed blotches in the shallows
   c=mix(c,c*vec3f(.72,.9,.86),smoothstep(.5,.7,a.g)*smoothstep(3.2,.6,dp)*.5);
   // foam-line network: warped cells, two scales cross-faded by zoom, brush-broken
   let d2=nz(p*.097+.2);let d3=nz(p*.23+.4);
-  let wq=(a.rg-.5)*.55+(d2.rg-.5)*.17;
+  let wq=(a.rg-.5)*.6+(d2.rg-.5)*.3+(d3.rg-.5)*.07;
   let zf=smoothstep(13.,19.,g.camU.w);
   let lw=(.024+.075*(a.b-.5)+.03*(d2.b-.5)-.06*smoothstep(.5,.3,b.b))*clamp(sqrt(60./g.misc.y),.6,1.4);
   var line=0.;
@@ -436,12 +437,12 @@ fn creatures(p:vec2f)->f32{
   let bd=p-g.boat.xy;let bc=cos(g.boat.z);let bs=sin(g.boat.z);let bq=vec2f(bd.x*bc+bd.y*bs,bd.y*bc-bd.x*bs);
   if(ell(bq-vec2f(.05,0.),vec2f(1.75,.5))<0.){discard;}
   let be=ell(bq-vec2f(.15,0.),vec2f(2.35,.82));
-  fo=max(fo,smoothstep(.34,.05,abs(be-.05))*smoothstep(.25,.55,a.b+.25*sin(t*3.+bq.x*4.))*(.25+.75*smoothstep(-1.5,2.2,bq.x)*min(g.boat.w*.3,1.)));
+  fo=max(fo,smoothstep(.3,.04,abs(be-.05))*smoothstep(.38,.6,d3.b*.7+d2.b*.3+.12*sin(t*2.5+bq.x*3.))*(.25+.75*smoothstep(-1.5,2.2,bq.x)*min(g.boat.w*.3,1.)));
   // wind ticks
   let sq=vec2f(dot(p,wd),dot(p,vec2f(-wd.y,wd.x)));
   let sk=smoothstep(.72,.75,nz(vec2f(sq.x*.04-ws*.04,sq.y*.25+sin(sq.x*.2)*.03)).b)*smoothstep(.45,.6,nz(sq*.019+t*.011).r)*(.4+.6*gu)*clamp(g.wind.z,.25,1.7);
   c=mix(c,vec3f(.95,.99,1.),max(max(line,fo),sk*.6*smoothstep(.5,2.,dp)));
-  c*=mix(vec3f(.74,.81,.93),vec3f(1.),shadow(i.wp,vec3f(0.,1.,0.)));
+  c*=mix(vec3f(.7,.78,.92),vec3f(1.),shadow(i.wp,vec3f(0.,1.,0.)));
   // edge of the painted world
   c=tone(c,i.wp);
   let ed=max(abs(p.x),abs(p.y))+(b.b-.5)*14.+(a.r-.5)*4.+(d2.b-.5)*1.8+(d3.b-.5)*1.3;
@@ -454,10 +455,11 @@ struct KO{@builtin(position)cp:vec4f,@location(0)wp:vec2f,@location(1)s:vec3f}
   let dm=.2+.8*smoothstep(0.,3.,-hgt(a));
   return KO(g.vp*vec4f(a.x,wave(a,g.camR.w).x*dm+.04,a.y,1.),a,s);}
 @fragment fn fs_wake(i:KO)->FO{
-  let s=abs(i.s.x);let a=i.s.y;let n=nz(i.wp*.13).b;let m=nz(i.wp*.045+.3).r;
-  let arm=smoothstep(.5,.72,s)*(1.-smoothstep(.86,1.,s))*smoothstep(.3,.5,n+.1*(1.-a));
-  let ch=(1.-smoothstep(.1,.6,s))*(1.-smoothstep(0.,.45,a))*smoothstep(.3,.6,n*.6+m*.5);
-  return FO(vec4f(tone(vec3f(.95,.99,1.),vec3f(i.wp.x,0.,i.wp.y)),clamp(max(arm*.8,ch)*i.s.z*pow(1.-a,1.2),0.,1.)),vec4f(0.));}
+  let a=i.s.y;let n=nz(i.wp*.2).b;let m=nz(i.wp*.06+.3);let s=abs(i.s.x+(m.r-.5)*.5);
+  let br=smoothstep(.2+.45*a,.42+.45*a,n*.65+m.b*.35);
+  let arm=smoothstep(.55,.7,s)*(1.-smoothstep(.8,.95,s))*br;
+  let ch=(1.-smoothstep(.1,.55,s))*(1.-smoothstep(0.,.4,a))*smoothstep(.3,.55,n*.6+m.g*.5);
+  return FO(vec4f(tone(vec3f(.95,.99,1.),vec3f(i.wp.x,0.,i.wp.y)),clamp(max(arm*.85,ch)*i.s.z*pow(1.-a,2.),0.,1.)),vec4f(0.));}
 `;
 const WGSL_POST=WGSL_COMMON+/*wgsl*/`
 @group(1)@binding(0)var colT:texture_2d<f32>;
@@ -479,7 +481,7 @@ fn seg(p:vec2f,a:vec2f,b:vec2f)->f32{let d=b-a;return length(p-a-d*clamp(dot(p-a
   let o=R.zw*max(sc,.7);let ox=vec2f(o.x,0.);let oy=vec2f(0.,o.y);
   // wash: slight bleed + pigment pooling at colour edges
   let c0=C(uv);let c1=C(uv-ox*1.7);let c2=C(uv+ox*1.7);let c3=C(uv-oy*1.7);let c4=C(uv+oy*1.7);
-  var c=mix(c0,(c1+c2+c3+c4)*.25,.3);
+  var c=mix(c0,(c1+c2+c3+c4)*.25,.2);
   // ink line from depth / normal discontinuities
   let a0=A(uv);let a1=A(uv-ox*1.15);let a2=A(uv+ox*1.15);let a3=A(uv-oy*1.15);let a4=A(uv+oy*1.15);
   let wm=max(a0.w,max(max(a1.w,a2.w),max(a3.w,a4.w)));
@@ -497,9 +499,9 @@ fn seg(p:vec2f,a:vec2f,b:vec2f)->f32{let d=b-a;return length(p-a-d*clamp(dot(p-a
   c=mix(paper,c*(1.-.13*smoothstep(64.,36.,e)),smoothstep(26.,36.,e));
   // trim dial: hull points up, arrow = apparent wind, cream line = boom, ticks = sheet limit
   // chart: local map (screen-aligned) with the boat, boom, sheet limit, apparent wind and anchor drawn on it
-  let d=(px-vec2f(164.,R.y/sc-164.)*sc)/(116.*sc);
+  let d=(px-vec2f(180.,R.y/sc-180.)*sc)/(130.*sc);
   if(g.misc.z>0.&&dot(d,d)<1.4){
-    let r=length(d)+(w2.r-.5)*.035;let ik=vec3f(.27,.2,.28);let aa=1.5/(116.*sc);
+    let r=length(d)+(w2.r-.5)*.035;let ik=vec3f(.27,.2,.28);let aa=1.5/(130.*sc);
     let wm2=g.boat.xy+vec2f(d.x+d.y,d.y-d.x)*${(K*64).toFixed(3)};
     let hm=textureSampleLevel(hmT,lin,wm2/${2*HM}.+.5,0.).r;
     var h=mix(vec3f(.6,.83,.9),vec3f(.8,.93,.91),smoothstep(-3.5,-.3,hm));
@@ -508,11 +510,11 @@ fn seg(p:vec2f,a:vec2f,b:vec2f)->f32{let d=b-a;return length(p-a-d*clamp(dot(p-a
     h=mix(h,vec3f(.72,.63,.55),smoothstep(2.4,3.,hm));
     h=mix(h,ik,.5*smoothstep(.16,.0,abs(hm)));
     h=mix(h,paper,smoothstep(${WH-8}.,${WH-5}.,max(abs(wm2.x),abs(wm2.y))));
-    h*=.96+.06*w1.r+(pap-.5)*.06;
+    h*=(.96+.06*w1.r+(pap-.5)*.06)*mix(vec3f(1.),vec3f(.55,.62,.85),g.tgt.w);
     let cs=cos(g.boat.z);let sn=sin(g.boat.z);let fm=vec2f(cs-sn,cs+sn)*${K};let rm=vec2f(-sn-cs,cs-sn)*${K};
-    let e=vec2f(dot(d,rm),-dot(d,fm))/.4;let ea=aa/.4;
+    let e=vec2f(dot(d,rm),-dot(d,fm))/.5;let ea=aa/.5;
     let m=vec2f(0.,-.12);let bm=g.hud.z;let sh=g.hud.w;let sv=vec2f(sin(sh),cos(sh));
-    h=mix(h,ik,.75*smoothstep(.02+ea,.02,min(seg(e,m+sv*.62,m+sv*.8),seg(e,m+sv*vec2f(-.62,.62),m+sv*vec2f(-.8,.8)))));
+    h=mix(h,ik,.9*smoothstep(.03+ea,.03,min(seg(e,m+sv*.62,m+sv*.8),seg(e,m+sv*vec2f(-.62,.62),m+sv*vec2f(-.8,.8)))));
     let hw=.2*(1.-pow(max(-e.y,0.)/.5,2.));let hd=max(abs(e.x)-hw,max(-.5-e.y,e.y-.42));
     h=mix(h,ik,smoothstep(.045+ea,.045,hd));h=mix(h,vec3f(.86,.55,.28),smoothstep(ea,0.,hd));
     let sd=seg(e,m,m+vec2f(sin(bm),cos(bm))*.62);
@@ -520,7 +522,7 @@ fn seg(p:vec2f,a:vec2f,b:vec2f)->f32{let d=b-a;return length(p-a-d*clamp(dot(p-a
     let f=fm*g.hud.x+rm*g.hud.y;let t1=-f*.7;let hq=d-t1;let al=dot(hq,f);
     let ad=min(seg(d,-f*(.76+.18*clamp(g.wind.z,.3,1.6)),t1-f*.06)-.022,max(max(al,-al-.15),abs(dot(hq,vec2f(-f.y,f.x)))+al*.62));
     h=mix(h,paper,.8*smoothstep(.03+aa,.03,ad));h=mix(h,vec3f(.08,.45,.72),smoothstep(aa,0.,ad));
-    let ac=d-vec2f(-.62,.5);
+    var am=vec2f(g.anc.x-g.anc.y,g.anc.x+g.anc.y)*${(K/64).toFixed(5)};am*=min(1.,.84/max(length(am),.001));let ac=d-am;
     h=mix(h,vec3f(.9,.3,.22),g.misc.x*smoothstep(.02+aa,.02,min(min(seg(ac,vec2f(0.,-.11),vec2f(0.,.11)),seg(ac,vec2f(-.06,-.06),vec2f(.06,-.06))),max(abs(length(ac)-.11),-ac.y))));
     c=mix(c,h,smoothstep(1.+aa,1.,r));
     c=mix(c,ik,.85*smoothstep(.03+aa,.03,abs(r-1.)));
@@ -549,7 +551,7 @@ const pProp=pipe('vs_prop','fs_prop',propBuf),pTerr=pipe('vs_prop','fs_terrain',
     {tp:'triangle-strip',ds:{format:'depth24plus',depthWriteEnabled:false,depthCompare:'less',depthBias:-16000},
      tg:[{format:'rgba8unorm',blend:{color:{srcFactor:'src-alpha',dstFactor:'one-minus-src-alpha'},alpha:{srcFactor:'zero',dstFactor:'one'}}},{format:'rgba16float',writeMask:0}]}),
   pShadow=dev.createRenderPipeline({layout:plSh,vertex:{module:smS,entryPoint:'vs_prop',buffers:propBuf},primitive:{cullMode:'none'},
-    depthStencil:{format:'depth32float',depthWriteEnabled:true,depthCompare:'less',depthBias:2,depthBiasSlopeScale:2.5}}),
+    depthStencil:{format:'depth32float',depthWriteEnabled:true,depthCompare:'less',depthBias:2,depthBiasSlopeScale:4}}),
   pPost=dev.createRenderPipeline({layout:plP,vertex:{module:smP,entryPoint:'vs_post'},fragment:{module:smP,entryPoint:'fs_post',targets:[{format:fmt}]}});
 
 // render targets (rebuilt on resize only)
@@ -594,7 +596,7 @@ addEventListener('keyup',e=>{const k=KM[e.code];if(k!==undefined)keys[k]=0});
 addEventListener('wheel',e=>{zoomT=cl(zoomT*(e.deltaY>0?1.1:.91),5.5,24)},{passive:true});
 function toggleAnchor(){anch=1-anch;if(anch){anx=bx+cos(psi)*2.4;anz=bz+sin(psi)*2.4;anT=T}}
 // scripted fly-through (screen-right / screen-depth waypoints)
-const WP=new Float32Array([24,25,44,22,64,27,70,4,46,-3,44,-34,24,-40,8,-44,-14,-26,-6,-4,6,10].map((v,i,a)=>i&1?-K*(a[i-1]+v):K*(v-a[i+1])));
+const WP=new Float32Array([24,25,44,22,66,28,72,6,80,-10,100,6,112,36,98,58].map((v,i,a)=>i&1?-K*(a[i-1]+v):K*(v-a[i+1])));
 const NWP=WP.length/2;
 // creatures: x,z,heading,phase
 const CRE=new Float32Array(16),CSP=[1.5,2.3,1.9,2.6],COR=[0,22,0,13],CTM=new Float32Array(4),CON=new Uint8Array(4);
@@ -605,7 +607,7 @@ function seedCreatures(mon){for(let i=0;i<4;i++){const a=i*1.9+.6,o=i*4;CRE[o+2]
 seedCreatures();
 // gulls
 const GA=new Float32Array(NG),GR=new Float32Array(NG),GH=new Float32Array(NG),GS=new Float32Array(NG),GP=new Float32Array(NG),GCX=new Float32Array(NG),GCZ=new Float32Array(NG);
-for(let i=0;i<NG;i++){GA[i]=rnd()*6.3;GR[i]=5+rnd()*8;GH[i]=5.5+rnd()*2.5;GS[i]=(.35+rnd()*.25)*(i&1?1:-1);GP[i]=rnd()*6.3;GCX[i]=(rnd()-.5)*20;GCZ[i]=(rnd()-.5)*20}
+for(let i=0;i<NG;i++){GA[i]=rnd()*6.3;GR[i]=7+rnd()*11;GH[i]=5.5+rnd()*2.5;GS[i]=(.35+rnd()*.25)*(i&1?1:-1);GP[i]=rnd()*6.3;GCX[i]=(rnd()-.5)*20;GCZ[i]=(rnd()-.5)*20}
 GR[0]=7;GH[0]=6.6;
 const BM=new Float32Array(12),LM=new Float32Array(12);
 function child(i,tx,ty,tz,yw,pt,rl,p0,p1,p2,p3){ // ID[i] = BM · local
@@ -651,7 +653,7 @@ function sim(dt){
   psi+=til*.4*(bv>0?.6+bv*.7:.6)*dt;
   bx+=vx*dt;bz+=vz*dt;
   // anchor rode
-  if(anch){const ox=bx+c*2.4-anx,oz=bz+s*2.4-anz,d=hypot(ox,oz),L=8;
+  if(anch){bx+=WX*WS*.8*dt;bz+=WZ*WS*.8*dt;const ox=bx+c*2.4-anx,oz=bz+s*2.4-anz,d=hypot(ox,oz),L=8;
     if(d>L){const k=(d-L)/d,nx=ox/d,nz=oz/d,vr=vx*nx+vz*nz;bx-=ox*k;bz-=oz*k;   // taut: hold the bow at the rode's length…
       if(vr>0){bv-=vr*(c*nx+s*nz);bl-=vr*(c*nz-s*nx)}
       psi+=wrap(atan2(-oz,-ox)-psi)*min(1,dt*2.4)}}                           // …and swing the nose round to the anchor
@@ -714,7 +716,8 @@ function update(){
   U[64]=af/aw;U[65]=ar/aw;U[66]=boom;U[67]=sheet;
   U[68]=anch;U[69]=RH/(2*hh);U[70]=HUD;U[71]=WA;
   for(let i=0;i<16;i++)U[72+i]=CRE[i];
-  for(let i=0;i<88;i++)U2[i]=U[i];for(let i=0;i<16;i++)U2[i]=U[16+i];
+  U[88]=anx-bx;U[89]=anz-bz;
+  for(let i=0;i<92;i++)U2[i]=U[i];for(let i=0;i<16;i++)U2[i]=U[16+i];
   dev.queue.writeBuffer(ub,0,U);dev.queue.writeBuffer(ub2,0,U2);
 
   // boat and its parts
@@ -730,7 +733,7 @@ function update(){
   world(iPen,mx,my-.2,mz,atan2(af*s+ar*c,af*c-ar*s),0,0,1,0,0,0);
   // anchor rode + buoy
   if(anch){bpt(2.3,.95,0);const k=sm(0,1.2,T-anT),qx=PX+(anx-PX)*k,qz=PZ+(anz-PZ)*k,qy=waveH(qx,qz,T);
-    segI(iRope,PX,PY,PZ,qx,qy-.1,qz,.02);
+    segI(iRope,PX,PY,PZ,qx,qy-.05,qz,.035);
     world(iBuoy,qx,qy,qz,0,sin(T*1.7)*.12,cos(T*1.3)*.12,1,0,0,0);
   }else{world(iRope,0,-50,0,0,0,0,0,0,0,0);world(iBuoy,0,-50,0,0,0,0,0,0,0,0)}
   // gulls (gull 0 comes to rest on the masthead now and then)
@@ -739,9 +742,9 @@ function update(){
     const en=sm(-.2,.5,sin(T*.37+GP[i]*3)),ph=T*8.5+GP[i];let fa=.1+.6*en*sin(ph),el=-.12-.42*en*cos(ph),fo=0;
     if(!i){const m=gullT%44,u=sm(14,17,m)*(1-sm(39,41.5,m)),lf=u>0&&u<1?sin(u*PI):0;
       x=bx+cos(GA[0])*GR[0];z=bz+sin(GA[0])*GR[0];
-      x+=(mx-x)*u;z+=(mz-z)*u;gy+=(my+.3-gy)*u;rl*=1-u;yw+=wrap(psi-yw)*u;
+      x+=(mx-x)*u;z+=(mz-z)*u;gy+=(my+.24-gy)*u;rl*=1-u;yw+=wrap(psi-yw)*u;
       fo=sm(.9,1,u);fa=(fa*(1-u)+lf*sin(T*15)*.75)*(1-fo)+fo*.1;el=(el*(1-u)-lf*cos(T*15)*.5)*(1-fo)-fo*.35}
-    world(iGull+i,x,gy,z,yw,0,rl,1.45,fa,fo,el)}
+    world(iGull+i,x,gy,z,yw,fo*.5,rl,1.12-.22*fo,fa,fo,el)}
   // crabs sidle along the sand
   for(let i=0;i<NC;i++){const q=i*6,u=sin(T*.45+CRB[q+4]),d=1.3*(sm(-.6,.6,u)*2-1),x=CRB[q]+CRB[q+2]*d,z=CRB[q+1]+CRB[q+3]*d;
     world(iCrab+i,x,hAt(x,z)+.01,z,CRB[q+5],0,0,1.5,CRB[q+4],1-sm(.5,.7,abs(u)),0)}
@@ -750,7 +753,7 @@ function update(){
   let px=bx-c*1.75,pz=bz-s*1.75,dx=c,dz=s,w=0;
   for(let j=0;j<=NW;j++){
     let x=px,z=pz,age=0,st=cl(abs(bv)*.28,0,1);
-    if(j){const k=(wkh-j+1+NW)%NW;x=wkx[k];z=wkz[k];age=(T-wkt[k])/7.5;st=wks[k];
+    if(j){const k=(wkh-j+1+NW)%NW;x=wkx[k];z=wkz[k];age=(T-wkt[k])/5.5;st=wks[k];
       const ex=px-x,ez=pz-z,l=hypot(ex,ez);if(l>.01){dx=ex/l;dz=ez/l}}
     if(age>1||age<0){age=1;x=px;z=pz}
     const hwid=.42+age*2.7;
@@ -762,19 +765,19 @@ function update(){
 
 // ───────────────────────── frame
 const cmds=[null],HUD=CAP&&!Q.has('hud')?0:1;
-function drawProps(p){
+function drawProps(p,sh){
   p.setVertexBuffer(0,vbuf);p.setVertexBuffer(1,nbuf);p.setIndexBuffer(ibuf,'uint32');
-  for(let i=0;i<ND;i++){const o=i*4;p.drawIndexed(draws[o+1],draws[o+3],draws[o],0,draws[o+2])}
+  for(let i=0;i<ND;i++){const o=i*4;if(sh&&draws[o]==mGull.first)continue;p.drawIndexed(draws[o+1],draws[o+3],draws[o],0,draws[o+2])}
   p.drawIndexed(mStruct.count,1,mStruct.first,0,0)}
 function drawTerr(p){for(let i=0;i<terr.length;i++)p.drawIndexed(terr[i].count,1,terr[i].first,0,0)}
 function render(){
   update();
   const en=dev.createCommandEncoder();
   let p=en.beginRenderPass(pdShadow);
-  p.setPipeline(pShadow);p.setBindGroup(0,bg0s);drawProps(p);drawTerr(p);p.end();
+  p.setPipeline(pShadow);p.setBindGroup(0,bg0s);drawProps(p,1);drawTerr(p);p.end();
   p=en.beginRenderPass(pdScene);
   p.setBindGroup(0,bg0);p.setBindGroup(1,bg1);
-  p.setPipeline(pProp);drawProps(p);
+  p.setPipeline(pProp);drawProps(p,0);
   p.setPipeline(pTerr);drawTerr(p);
   p.setPipeline(pWater);p.setVertexBuffer(0,wvb);p.setIndexBuffer(wib,'uint32');p.drawIndexed(GX*GY*6);
   p.setPipeline(pWake);p.setVertexBuffer(0,wkb);p.draw((NW+1)*2);
@@ -814,13 +817,13 @@ function frame(now){
   if(halt)return;
   render();requestAnimationFrame(frame)}
 if(CAP){
-  window.sf={set:setPose,step:(dt,n)=>{for(let i=0;i<n;i++)sim(dt)},fly:()=>{setPose(0,0,.9,11,0,8);AP=1;wpi=0},zoom:z=>{zoom=zoomT=z},
+  window.sf={set:setPose,step:(dt,n)=>{for(let i=0;i<n;i++)sim(dt)},fly:()=>{setPose(4,0,-2.5,11,0,4);AP=1;wpi=0},zoom:z=>{zoom=zoomT=z},
     draw:async()=>{resize();render();const bpr=RW*4+255&~255,rb=dev.createBuffer({size:bpr*RH,usage:B.MAP_READ|B.COPY_DST}),en=dev.createCommandEncoder();
       en.copyTextureToBuffer({texture:offT},{buffer:rb,bytesPerRow:bpr},[RW,RH]);dev.queue.submit([en.finish()]);await rb.mapAsync(GPUMapMode.READ);
       const src=new Uint8Array(rb.getMappedRange()),im=new ImageData(RW,RH);for(let y=0;y<RH;y++)im.data.set(src.subarray(y*bpr,y*bpr+RW*4),y*RW*4);
       cv.getContext('2d').putImageData(im,0,0);rb.destroy()},state:()=>({bx,bz,psi,bv,sheet,boom,wpi,T})};
 }else{
-  setPose(0,0,.9,11,0,8);AP=0;
+  setPose(4,0,-2.5,11,0,4);AP=0;
   if(BENCH){AP=1;wpi=0;
     setTimeout(()=>{benchOn=1;bN=gN=0;bT0=performance.now()},1500)}
   setTimeout(()=>hint.style.opacity=0,14000);
