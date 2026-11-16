@@ -159,14 +159,15 @@ const mRud=mesh(()=>{setT();col(...DK);box(-.16,-.34,0,.28,.72,.05);box(-.05,.13
 const mSailor=mesh(()=>{setT(0,0,0,0,0,0,1.25);
   for(const g of[1,-1]){col(.2,.29,.5);cyl(0,.07,g*.1,.3,.09,g*.11,.085,.075,7);cyl(.3,.1,g*.11,.32,-.17,g*.11,.075,.065,7);ball(.3,.09,g*.11,.08,.08,.08,6,5);
     col(.32,.22,.18);ball(.37,-.2,g*.11,.12,.065,.075,7,5)}
-  col(1,.8,.16);ball(0,.3,0,.2,.33,.22,12,9);cyl(0,-.02,0,0,.2,0,.23,.2,10);
-  cyl(0,.5,.19,.1,.33,.25,.07,.062,6);cyl(.1,.33,.25,.26,.2,.15,.062,.055,6);ball(.1,.33,.25,.066,.066,.066,6,5);
-  col(.99,.8,.66);ball(.28,.19,.14,.06,.055,.06,6,5);
-  col(.9,.3,.24);ball(0,.6,0,.17,.07,.19,10,5);cyl(-.1,.6,.1,-.2,.42,.14,.05,.04,5);
-  col(.99,.8,.66);ball(.02,.79,0,.2,.19,.2,12,9);
-  col(.2,.16,.2);ball(.2,.8,.075,.028,.036,.028,5,4);ball(.2,.8,-.075,.028,.036,.028,5,4);
-  col(.96,.6,.55);ball(.215,.74,0,.03,.022,.03,5,4);
-  col(1,.8,.16);ball(0,.9,0,.215,.15,.215,12,6);ball(-.05,.86,0,.36,.035,.31,14,4)});
+  col(1,.8,.16);ball(0,.32,0,.17,.31,.2,12,9);cyl(0,-.02,0,0,.22,0,.24,.19,10);ball(0,.53,0,.15,.09,.26,10,6);
+  col(.86,.62,.1);cyl(0,-.03,0,0,.03,0,.25,.245,10);cyl(0,.21,0,0,.26,0,.2,.2,10);
+  col(1,.8,.16);cyl(0,.52,.24,.08,.33,.29,.07,.062,6);cyl(.08,.33,.29,.27,.2,.17,.062,.055,6);ball(.08,.33,.29,.066,.066,.066,6,5);ball(0,.52,-.24,.075,.075,.075,6,5);
+  col(.99,.8,.66);ball(.29,.19,.16,.06,.055,.06,6,5);
+  col(.9,.3,.24);ball(0,.62,0,.16,.065,.18,10,5);cyl(-.1,.62,.1,-.22,.42,.15,.05,.04,5);
+  col(.99,.8,.66);ball(.02,.8,0,.2,.19,.2,12,9);
+  col(.2,.16,.2);ball(.2,.81,.075,.028,.036,.028,5,4);ball(.2,.81,-.075,.028,.036,.028,5,4);
+  col(.96,.6,.55);ball(.215,.75,0,.03,.022,.03,5,4);
+  col(1,.8,.16);ball(0,.91,0,.21,.15,.21,12,6);ball(-.13,.86,0,.4,.035,.3,14,4);col(.86,.62,.1);cyl(0,.875,0,0,.91,0,.215,.21,12)});
 const mArm=mesh(()=>{setT();col(1,.8,.16);cyl(0,0,0,1,0,0,1,1,6)});
 const mHand=mesh(()=>{setT();col(.99,.8,.66);ball(0,0,0,.065,.065,.065,6,5)});
 const mPen=mesh(()=>{setT();col(.93,.38,.27);KD=4;WF=x=>x;surf(8,1,(u,v)=>[u*.95,(v-.5)*.36*(1-u*.9),0]);WF=null;KD=0});
@@ -252,7 +253,7 @@ IS.forEach((I,ii)=>{
     if(ok){crabs.push(x,z,-dz,dx,rnd()*6.3,atan2(dz,dx));k++}}});
 // rocks awash near the home beach for a bit of foreground interest
 const NC=crabs.length/6,NG=7;
-const dyn=[[mHull,1],[mRig,1],[mRud,1],[mSailor,1],[mArm,1],[mHand,1],[mPen,1],[mRope,1],[mBuoy,1],[mGull,NG],[mCrab,NC]];
+const dyn=[[mHull,1],[mRig,1],[mRud,1],[mSailor,1],[mArm,1],[mHand,1],[mPen,1],[mRope,2],[mBuoy,1],[mGull,NG],[mCrab,NC]];
 let ni=1;const draws=[];
 for(const[m,a]of lists){draws.push(m.first,m.count,ni,a.length/16);ni+=a.length/16}
 const D0=ni,DI={};for(const[m,n]of dyn){DI[m.first]=ni;draws.push(m.first,m.count,ni,n);ni+=n}
@@ -318,19 +319,19 @@ fn shadow(wp:vec3f,n:vec3f)->f32{
 fn cloud(p:vec2f)->f32{return smoothstep(.5,.7,nz((p-g.wind.xy*g.wind.w*.5)*.0043).g);}
 fn shade(c:vec3f,n:vec3f,wp:vec3f)->vec3f{
   let d=dot(n,g.sun.xyz);let l=smoothstep(-.12,.3,d)*shadow(wp,n);
-  var o=mix(c*vec3f(.8,.76,.94)+vec3f(0.,.0,.02),c,l);
+  var o=mix(c*vec3f(.82,.77,.97)+vec3f(0.,.0,.02),c,l);
   o=mix(o,o*1.08+.03,smoothstep(.8,.9,d)*l*.7);
   return o*(1.-.1*cloud(wp.xz));}
 // night: cool wash everywhere, warm pools from the boat lantern and the sweeping lighthouse beam
 fn tone(c:vec3f,wp:vec3f)->vec3f{
   let nf=g.tgt.w;if(nf<=0.){return c;}
   let bp=g.boat.xy+vec2f(cos(g.boat.z),sin(g.boat.z))*2.3;
-  var L=pow(smoothstep(6.,0.,length(wp.xz-bp)),1.6)*.9;
+  var L=pow(smoothstep(8.,0.,length(wp-vec3f(bp.x,1.,bp.y))),1.5)*.95;
   let v=wp.xz-vec2f(${IS[1].x.toFixed(3)},${IS[1].z.toFixed(3)});let dl=length(v);let ba=g.camR.w*.6;
   L=max(L,smoothstep(.93,.997,dot(v/max(dl,.01),vec2f(cos(ba),sin(ba))))*smoothstep(90.,6.,dl)*.75);
   L=max(L,smoothstep(5.5,.5,dl)*.4);
   L=max(L,smoothstep(3.5,0.,length(wp.xz-vec2f(${HX.toFixed(3)},${HZ.toFixed(3)})))*.6);
-  return mix(c,mix(c*vec3f(.27,.37,.7)+vec3f(0.,.01,.06),c*vec3f(.95,.88,.7)+vec3f(.13,.1,.02),L),nf);}
+  return mix(c,mix(c*vec3f(.3,.36,.6)+vec3f(0.,.01,.05),c*vec3f(.95,.88,.7)+vec3f(.13,.1,.02),L),nf);}
 fn aux(n:vec3f,wp:vec3f,k:f32)->vec4f{return vec4f(dot(n,g.camR.xyz),dot(n,g.camU.xyz),dot(wp-g.tgt.xyz,g.camF.xyz),k);}
 
 // ── props / terrain
@@ -411,7 +412,7 @@ fn creatures(p:vec2f)->f32{
       if(i==0){q.y+=sin(q.x*.45+c.w)*.4*smoothstep(1.,-5.,q.x);
         s=min(ell(q,vec2f(4.4,1.25)),ell(q+vec2f(4.9,0.),vec2f(.7,1.7)));
         s=min(s,ell(vec2f(q.x-1.2+abs(q.y)*.5,abs(q.y)-1.5),vec2f(.9,.5)));}
-      else if(i==2){s=(abs(q.x)/2.1+pow(abs(q.y)/(2.9+.4*sin(c.w*1.4)),1.4)-1.)*1.2;s=min(s,max(abs(q.y)-.09,abs(q.x+3.4)-1.7));}
+      else if(i==2){s=(pow(abs(q.x)/2.2,1.6)+pow(abs(q.y)/(2.9+.4*sin(c.w*1.4)),1.6)-1.)*.55;s=min(s,max(abs(q.y-sin(q.x*1.6+c.w)*.14)-.1,abs(q.x+3.4)-1.6)*.6);}
       else{let cq=q*.75+vec2f(0.,sin(q.x*.4+c.w)*.3);let hh=h2(floor(cq));let f=(fract(cq)-.5-(hh-.5)*.4)/(.6+.5*hh.y);
         s=min(ell(f,vec2f(.3,.1)),ell(f+vec2f(.36,0.),vec2f(.07,.14)))*.8+step(.42,hh.x)+smoothstep(12.,30.,dot(q,q));}
       m=max(m,smoothstep(.14,-.14,s));
@@ -433,7 +434,7 @@ fn creatures(p:vec2f)->f32{
   let d2=nz(p*.097+.2);let d3=nz(p*.23+.4);
   let wq=(a.rg-.5)*.6+(d2.rg-.5)*.3+(d3.rg-.5)*.07;
   let zf=smoothstep(13.,19.,g.camU.w);
-  let lw=(.024+.075*(a.b-.5)+.03*(d2.b-.5)-.06*smoothstep(.5,.3,b.b))*clamp(sqrt(60./g.misc.y),.6,1.4);
+  let lw=(.03+.08*(a.b-.5)+.03*(d2.b-.5)-.06*smoothstep(.5,.3,b.b))*clamp(sqrt(60./g.misc.y),.6,1.4);
   var line=0.;
   if(zf<1.){let v=voro(p*.27+wq-wd*ws*.01,t);let aa=.35/g.misc.y;line=(1.-zf)*(1.-smoothstep(lw-aa,lw+aa,v.y-v.x));}
   if(zf>0.){let v=voro(p*.125+wq*.55-wd*ws*.005+7.,t*.7);let aa=.17/g.misc.y;line+=zf*(1.-smoothstep(lw*.6-aa,lw*.6+aa,v.y-v.x));}
@@ -447,7 +448,7 @@ fn creatures(p:vec2f)->f32{
   c*=1.-.07*gu;
   c*=1.-.11*cloud(p);
   // what lives below
-  c=mix(c,c*vec3f(.36,.5,.7),creatures(p)*.6*smoothstep(1.5,3.5,dp));
+  c=mix(c,c*vec3f(.36,.5,.7),creatures(p)*.52*smoothstep(1.5,3.5,dp));
   // shore
   c=mix(mix(vec3f(.8,.72,.52),c,.45),c,smoothstep(0.,.4,th));
   var fo=smoothstep(.1,.03,th);
@@ -532,7 +533,7 @@ fn seg(p:vec2f,a:vec2f,b:vec2f)->f32{let d=b-a;return length(p-a-d*clamp(dot(p-a
     h=mix(h,paper,smoothstep(${WH-8}.,${WH-5}.,max(abs(wm2.x),abs(wm2.y))));
     h*=(.96+.06*w1.r+(pap-.5)*.06)*mix(vec3f(1.),vec3f(.55,.62,.85),g.tgt.w);
     let cs=cos(g.boat.z);let sn=sin(g.boat.z);let fm=vec2f(cs-sn,cs+sn)*${K};let rm=vec2f(-sn-cs,cs-sn)*${K};
-    let e=vec2f(dot(d,rm),-dot(d,fm))/.5;let ea=aa/.5;
+    let e=vec2f(dot(d,rm),-dot(d,fm))/.42;let ea=aa/.42;
     let m=vec2f(0.,-.12);let bm=g.hud.z;let sh=g.hud.w;let sv=vec2f(sin(sh),cos(sh));
     h=mix(h,ik,.9*smoothstep(.03+ea,.03,min(seg(e,m+sv*.62,m+sv*.8),seg(e,m+sv*vec2f(-.62,.62),m+sv*vec2f(-.8,.8)))));
     let hw=.2*(1.-pow(max(-e.y,0.)/.5,2.));let hd=max(abs(e.x)-hw,max(-.5-e.y,e.y-.42));
@@ -542,7 +543,8 @@ fn seg(p:vec2f,a:vec2f,b:vec2f)->f32{let d=b-a;return length(p-a-d*clamp(dot(p-a
     let f=fm*g.hud.x+rm*g.hud.y;let t1=-f*.7;let hq=d-t1;let al=dot(hq,f);
     let ad=min(seg(d,-f*(.76+.18*clamp(g.wind.z,.3,1.6)),t1-f*.06)-.022,max(max(al,-al-.15),abs(dot(hq,vec2f(-f.y,f.x)))+al*.62));
     h=mix(h,paper,.8*smoothstep(.03+aa,.03,ad));h=mix(h,vec3f(.08,.45,.72),smoothstep(aa,0.,ad));
-    var am=vec2f(g.anc.x-g.anc.y,g.anc.x+g.anc.y)*${(K/64).toFixed(5)};am*=min(1.,.84/max(length(am),.001));let ac=d-am;
+    var am=vec2f(g.anc.x-g.anc.y,g.anc.x+g.anc.y)*${(K/64).toFixed(5)};am*=clamp(length(am),.36,.84)/max(length(am),.001);let ac=d-am;
+    h=mix(h,ik,g.misc.x*.7*smoothstep(.012+aa,.012,seg(d,fm*.2,am)));
     h=mix(h,vec3f(.9,.3,.22),g.misc.x*smoothstep(.02+aa,.02,min(min(seg(ac,vec2f(0.,-.11),vec2f(0.,.11)),seg(ac,vec2f(-.06,-.06),vec2f(.06,-.06))),max(abs(length(ac)-.11),-ac.y))));
     c=mix(c,h,smoothstep(1.+aa,1.,r));
     c=mix(c,ik,.85*smoothstep(.03+aa,.03,abs(r-1.)));
@@ -692,9 +694,10 @@ function sim(dt){
   bx+=vx*dt;bz+=vz*dt;
   // anchor rode
   if(anch){bx+=WX*WS*.8*dt;bz+=WZ*WS*.8*dt;const ox=bx+c*2.4-anx,oz=bz+s*2.4-anz,d=hypot(ox,oz),L=8;
+    if(d>L*.9)psi+=wrap(atan2(-oz,-ox)-psi)*min(1,dt*2.4*sm(L*.9,L,d));
     if(d>L){const k=(d-L)/d,nx=ox/d,nz=oz/d,vr=vx*nx+vz*nz;bx-=ox*k;bz-=oz*k;   // taut: hold the bow at the rode's length…
       if(vr>0){bv-=vr*(c*nx+s*nz);bl-=vr*(c*nz-s*nx)}
-      psi+=wrap(atan2(-oz,-ox)-psi)*min(1,dt*2.4)}}                           // …and swing the nose round to the anchor
+}}                           // …and swing the nose round to the anchor
   // shoals and the soft edge of the world
   const h=hAt(bx,bz);
   if(h>-.45){const gx=hAt(bx+.5,bz)-hAt(bx-.5,bz),gz=hAt(bx,bz+.5)-hAt(bx,bz-.5),gl=hypot(gx,gz)+1e-4,k=(h+.45)*4*dt;bx-=gx/gl*k;bz-=gz/gl*k;bv*=1-min(1,3*dt)}
@@ -770,10 +773,11 @@ function update(){
   const mx=BM[0]*.55+BM[1]*4.86+BM[3],my=BM[4]*.55+BM[5]*4.86+BM[7],mz=BM[8]*.55+BM[9]*4.86+BM[11];
   world(iPen,mx,my-.2,mz,atan2(af*s+ar*c,af*c-ar*s),0,0,1,0,0,0);
   // anchor rode + buoy
-  if(anch){bpt(2.3,.95,0);const k=sm(0,1.2,T-anT),qx=PX+(anx-PX)*k,qz=PZ+(anz-PZ)*k,qy=waveH(qx,qz,T);
-    segI(iRope,PX,PY,PZ,qx,qy-.05,qz,.035);
+  if(anch){bpt(2.3,.95,0);const k=sm(0,1.2,T-anT),qx=PX+(anx-PX)*k,qz=PZ+(anz-PZ)*k,qy=waveH(qx,qz,T),
+      hx=PX+(qx-PX)*.4,hz=PZ+(qz-PZ)*.4,hy=waveH(hx,hz,T)-.1;
+    segI(iRope,PX,PY,PZ,hx,hy,hz,.035);segI(iRope+1,hx,hy,hz,qx,qy-.05,qz,.035);
     world(iBuoy,qx,qy,qz,0,sin(T*1.7)*.12,cos(T*1.3)*.12,1,0,0,0);
-  }else{world(iRope,0,-50,0,0,0,0,0,0,0,0);world(iBuoy,0,-50,0,0,0,0,0,0,0,0)}
+  }else{world(iRope,0,-50,0,0,0,0,0,0,0,0);world(iRope+1,0,-50,0,0,0,0,0,0,0,0);world(iBuoy,0,-50,0,0,0,0,0,0,0,0)}
   // gulls (gull 0 comes to rest on the masthead now and then)
   for(let i=0;i<NG;i++){
     let x=GCX[i]+cos(GA[i])*GR[i],z=GCZ[i]+sin(GA[i])*GR[i],gy=GH[i]+sin(T*.5+GP[i])*.6,yw=GA[i]+(GS[i]>0?PI/2:-PI/2),rl=GS[i]>0?.3:-.3;
@@ -844,9 +848,9 @@ async function benchDone(){benchOn=0;halt=1;
     (g?`GPU frame ms       avg ${F(g.avg)}  p99 ${F(g.p99)}  max ${F(g.max)}   (${gN} samples)\ngate (avg ≤ 11, max ≤ 16.7): ${r.pass?'PASS':'FAIL'}`:'timestamp-query unavailable: no GPU timings')+'\nfull log: copy(JSON.stringify(__bench))'}
 
 function setPose(x,z,ps,zm,an,wm,gt,mon,ni,wi){night=nightT=ni||0;wmul=wmulT=wi||1;camX=camZ=0; // fixed, deterministic states for review renders: screen-right, screen-depth, heading, zoom, anchored, warm-up s, gull clock
-  bx=K*(x-z)-cos(ps)*3.3*wm;bz=-K*(x+z)-sin(ps)*3.3*wm;psi=psiH=ps;zoom=zoomT=zm;AP=2;bv=3;bl=0;T=20;anch=0;boom=.5;gullT=gt||0;wkt.fill(-99);
+  const bk=an?6:3.3*wm;bx=K*(x-z)-cos(ps)*bk;bz=-K*(x+z)-sin(ps)*bk;psi=psiH=ps;zoom=zoomT=zm;AP=2;bv=3;bl=0;T=20;anch=0;boom=.5;gullT=gt||0;wkt.fill(-99);
   for(let i=0;i<NG;i++){GCX[i]=bx+12*sin(i*2.4);GCZ[i]=bz+12*cos(i*2.4)}
-  seedCreatures(mon);const w=wm*60;for(let i=0;i<w;i++){sim(1/60);if(an&&i==max(0,w-420)){toggleAnchor();AP=0;sheet=1.5}}}
+  seedCreatures(mon);const w=wm*60;for(let i=0;i<w;i++){sim(1/60);if(an&&i==120){toggleAnchor();AP=0;sheet=1.5}}}
 let last=0,halt=0;
 function frame(now){
   let dt=(now-last)/1e3;last=now;
