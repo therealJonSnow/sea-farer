@@ -10,10 +10,13 @@ Open `index.html` in a WebGPU browser (it needs a secure context, so serve it fr
 | --- | --- |
 | `S` / `D` | push the tiller left / right (a tiller turns the bow the opposite way) |
 | `I` / `O` | sheet the sail in / let it out |
-| `A` | drop / weigh anchor |
+| `A` | drop / weigh anchor (the buoy marks it; the rode holds the bow at about two boat lengths) |
+| `-` / `+` | less / more wind (also the buttons top right) |
+| `N` | day / night (lighthouse beam and the boat's lantern come on) |
+| drag | look around: the view follows the pointer 1:1 and snaps back to the boat on release |
 | wheel | zoom |
 
-The wind blows from a fixed direction (the streaks on the water, the trees and the masthead pennant all show it). The boom swings downwind until the sheet stops it; the sail only drives when it is held at an angle to the wind, so let it out when running and haul it in when beating. Point too close to the wind and it luffs. The dial in the corner shows the hull, the boom, the sheet limit and the apparent wind.
+The wind blows from a fixed direction (the ticks on the water, the trees and the masthead pennant all show it). The boom swings downwind until the sheet stops it; the sail only drives when it is held at an angle to the wind, so let it out when running and haul it in when beating. Point too close to the wind and it luffs, and a boat with no way on drifts off downwind. The chart in the corner is a local map with the hull, the boom, the sheet limit and the apparent-wind arrow drawn on it.
 
 ## Layout
 

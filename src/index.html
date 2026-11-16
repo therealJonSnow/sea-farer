@@ -809,7 +809,7 @@ function setPose(x,z,ps,zm,an,wm,gt,mon,ni,wi){night=nightT=ni||0;wmul=wmulT=wi|
 let last=0,halt=0;
 function frame(now){
   let dt=(now-last)/1e3;last=now;
-  if(benchOn){if(bN<BMAX)fms[bN++]=dt*1e3;if(now-bT0>=BSEC*1e3)benchDone();zoomT=11+4*sin((now-bT0)*.00021)}
+  if(benchOn){if(bN<BMAX)fms[bN++]=dt*1e3;if(now-bT0>=BSEC*1e3){benchOn=0;halt=1;setTimeout(benchDone,50)}zoomT=11+4*sin((now-bT0)*.00021)}
   sim(dt>.05?.05:dt<0?0:dt);
   if(halt)return;
   render();requestAnimationFrame(frame)}
