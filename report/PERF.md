@@ -38,4 +38,8 @@ No compute, no ray marching, no per-pixel loops beyond those. That is a small lo
 
 ## Allocation discipline
 
-The frame loop (simulation, uniform and instance updates, wake ribbon, encoding) allocates nothing of its own: all typed arrays, pass descriptors and the submit array are created once and reused. What remains per frame is what WebGPU itself hands back: one command encoder, three pass encoders, one command buffer and the swap-chain texture view. On touch devices the on-screen helm writes a style string when the tiller or sheet actually moves; on the desktop target that code is not active.
+The frame loop (simulation, uniform and instance updates, wake ribbon, encoding) allocates nothing of its own: all typed arrays, pass descriptors and the submit array are created once and reused. What remains per frame is what WebGPU itself hands back: one command encoder, three pass encoders, one command buffer and the swap-chain texture view. On touch devices the on-screen helm writes a style string when the tiller or sheet actually moves, and the adaptive-resolution step reallocates render targets when it triggers; on the desktop target neither is active.
+
+## Bundle size
+
+`index.html` (single self-contained file, minified WGSL + JS + CSS): **54,958 bytes (53.7 KiB)**, 23,639 bytes gzipped.
